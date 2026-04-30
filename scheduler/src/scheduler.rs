@@ -1,5 +1,5 @@
 use flowforge_common::config::AppConfig;
-use flowforge_common::dag::{get_ready_tasks, validate_dag};
+use flowforge_common::dag::get_ready_tasks;
 use flowforge_common::models::{DagDefinition, TaskMessage, TaskResult};
 use flowforge_common::queue::TaskQueue;
 use sqlx::PgPool;

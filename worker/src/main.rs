@@ -2,7 +2,7 @@ mod executor;
 
 use flowforge_common::config::AppConfig;
 use flowforge_common::db;
-use flowforge_common::models::{TaskMessage, TaskResult};
+use flowforge_common::models::TaskResult;
 use flowforge_common::queue::TaskQueue;
 use sqlx::PgPool;
 use tracing::{error, info, warn};

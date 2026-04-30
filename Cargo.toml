@@ -35,7 +35,7 @@ sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid"
 redis = { version = "0.25", features = ["tokio-comp", "aio"] }
 
 # CLI
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 
 # Observability
 tracing = "0.1"
