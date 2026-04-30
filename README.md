@@ -1,6 +1,6 @@
 # FlowForge ⚡
 
-**A production-grade, lightweight distributed workflow scheduler written in Rust.**
+**A lightweight distributed workflow scheduler written in Rust.**
 
 FlowForge is a DAG-based workflow orchestration system — similar to Apache Airflow — but optimized for performance, simplicity, and reliability. It features task scheduling with dependency resolution, distributed worker execution, retry logic with exponential backoff, a REST API, CLI, and web UI.
 
