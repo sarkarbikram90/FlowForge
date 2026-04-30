@@ -1,0 +1,14 @@
+[package]
+name = "flowforge-cli"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
