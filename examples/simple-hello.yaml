@@ -1,0 +1,18 @@
+id: simple-hello
+name: Simple Hello World
+description: Minimal DAG for testing
+default_retries: 2
+
+tasks:
+  - id: hello
+    name: Say Hello
+    command: "echo 'Hello from FlowForge!'"
+    depends_on: []
+    timeout_secs: 30
+
+  - id: world
+    name: Say World
+    command: "echo 'World!' && date"
+    depends_on:
+      - hello
+    timeout_secs: 30

@@ -1,0 +1,26 @@
+id: retry-demo
+name: Retry Demo
+description: DAG demonstrating retry logic with failing tasks
+default_retries: 3
+
+tasks:
+  - id: always-succeeds
+    name: Always Succeeds
+    command: "echo 'This always works!'"
+    depends_on: []
+    timeout_secs: 30
+
+  - id: flaky-task
+    name: Flaky Task
+    command: "echo 'Attempt running...' && exit $(shuf -i 0-1 -n 1)"
+    depends_on:
+      - always-succeeds
+    retries: 5
+    timeout_secs: 30
+
+  - id: final-step
+    name: Final Step
+    command: "echo 'Pipeline complete!'"
+    depends_on:
+      - flaky-task
+    timeout_secs: 30

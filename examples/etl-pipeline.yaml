@@ -1,0 +1,54 @@
+id: etl-pipeline
+name: ETL Data Pipeline
+description: Example DAG demonstrating a data pipeline with extract, transform, and load stages
+schedule: "0 0 * * * *"  # Every hour
+default_retries: 3
+
+tasks:
+  - id: extract-users
+    name: Extract Users
+    command: "echo 'Extracting user data...' && sleep 2 && echo 'Extracted 1000 users'"
+    depends_on: []
+    timeout_secs: 120
+
+  - id: extract-orders
+    name: Extract Orders
+    command: "echo 'Extracting order data...' && sleep 2 && echo 'Extracted 5000 orders'"
+    depends_on: []
+    timeout_secs: 120
+
+  - id: transform-users
+    name: Transform Users
+    command: "echo 'Transforming user data...' && sleep 3 && echo 'Transformed 1000 users'"
+    depends_on:
+      - extract-users
+    timeout_secs: 180
+
+  - id: transform-orders
+    name: Transform Orders
+    command: "echo 'Transforming order data...' && sleep 3 && echo 'Transformed 5000 orders'"
+    depends_on:
+      - extract-orders
+    timeout_secs: 180
+
+  - id: join-data
+    name: Join Data
+    command: "echo 'Joining user and order data...' && sleep 2 && echo 'Join complete'"
+    depends_on:
+      - transform-users
+      - transform-orders
+    timeout_secs: 300
+
+  - id: load-warehouse
+    name: Load to Warehouse
+    command: "echo 'Loading data to warehouse...' && sleep 2 && echo 'Load complete - 6000 records'"
+    depends_on:
+      - join-data
+    timeout_secs: 300
+
+  - id: send-report
+    name: Send Report
+    command: "echo 'Sending ETL report...' && echo 'Report sent successfully'"
+    depends_on:
+      - load-warehouse
+    timeout_secs: 60
