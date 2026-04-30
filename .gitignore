@@ -2,7 +2,7 @@
 /target/
 **/*.rs.bk
 Cargo.lock
-
+Cargo.lock.*
 # IDE
 .idea/
 .vscode/
@@ -23,3 +23,4 @@ ui/dist/
 
 # Docker
 *.pid
+*.jsonl
