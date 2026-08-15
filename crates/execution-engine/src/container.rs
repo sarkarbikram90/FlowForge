@@ -39,7 +39,7 @@ impl TaskExecutor for ContainerExecutor {
         // Build docker run command
         let container_name = format!(
             "ff-{}-{}",
-            &ctx.message.task_id,
+            ctx.message.task_id,
             &ctx.attempt_id.to_string()[..8]
         );
         let mut docker_cmd = Command::new("docker");
