@@ -46,7 +46,7 @@ jobs:
           echo "Waiting for PostgreSQL container to report ready..."
           READY=false
           for i in {1..30}; do
-            if docker compose exec -T postgres pg_isready -U flowforge; then
+            if docker compose exec -T postgres pg_isready -h 127.0.0.1 -U flowforge; then
               echo "PostgreSQL is ready!"
               READY=true
               break
@@ -66,7 +66,7 @@ jobs:
           echo "Applying versioned SQL migrations into postgres container..."
           for migration in $(ls -1 migrations/*.sql | sort); do
             echo "Applying $migration..."
-            cat "$migration" | docker compose exec -T postgres psql -U flowforge -d flowforge
+            cat "$migration" | docker compose exec -T -e PGPASSWORD=flowforge postgres psql -h 127.0.0.1 -U flowforge -d flowforge
           done
           echo "Database schema migrations applied successfully!"
 

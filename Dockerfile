@@ -7,7 +7,7 @@ RUN apk add --no-cache musl-dev pkgconfig openssl-dev perl make
 
 WORKDIR /usr/src/flowforge
 
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml Cargo.lock* ./
 COPY crates ./crates
 
 RUN cargo build --release --workspace

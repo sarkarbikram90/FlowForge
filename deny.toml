@@ -10,10 +10,9 @@ targets = [
 ]
 
 [advisories]
-vulnerability = "deny"
-unmaintained = "all"
+version = 2
 yanked = "warn"
-notice = "warn"
+unmaintained = "all"
 ignore = []
 
 [licenses]
