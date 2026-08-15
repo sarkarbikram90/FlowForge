@@ -1,7 +1,7 @@
 # ─── Multi-Stage Dockerfile for FlowForge Platform ───
 
 # Stage 1: Build Rust Binaries
-FROM rust:1.85-alpine AS builder
+FROM rust:alpine AS builder
 
 RUN apk add --no-cache musl-dev pkgconfig openssl-dev perl make
 
