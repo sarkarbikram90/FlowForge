@@ -88,27 +88,32 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Build Unified FlowForge Container Image
-        run: docker build -t flowforge-smoke:latest -f Dockerfile .
+      - name: Build Unified FlowForge API Container Image
+        run: docker build --target api -t flowforge-smoke:latest -f Dockerfile .
 
       - name: Boot FlowForge API Container in Background
         run: |
           docker run -d --name flowforge-smoke-app \
             -p 8080:8080 \
             -e DATABASE_URL=memory \
+            -e API_HOST=0.0.0.0 \
+            -e API_PORT=8080 \
+            -e RUST_LOG=info \
             flowforge-smoke:latest
 
       - name: Wait for HTTP Health Probe Ready
         run: |
           echo "Waiting for FlowForge API service to report live..."
           for i in {1..30}; do
+            echo "Attempt $i/30..."
             if curl -s -f http://localhost:8080/api/v1/health/live; then
-              echo "FlowForge API is LIVE!"
+              echo ""
+              echo "FlowForge API is LIVE and responding healthy!"
               exit 0
             fi
-            echo "Waiting for container startup (attempt $i/30)..."
             sleep 1
           done
+          echo "FINAL CONTAINER LOGS:"
           docker logs flowforge-smoke-app
           exit 1
 
