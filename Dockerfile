@@ -3,7 +3,7 @@
 # Stage 1: Build Rust Binaries
 FROM rust:alpine AS builder
 
-RUN apk add --no-cache musl-dev pkgconfig openssl-dev perl make
+RUN apk add --no-cache musl-dev pkgconfig openssl-dev openssl-libs-static perl make
 
 WORKDIR /usr/src/flowforge
 
