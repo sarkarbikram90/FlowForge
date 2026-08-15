@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use regex::Regex;
+use std::collections::HashMap;
 
 pub struct VariableInterpolator;
 
@@ -14,15 +14,22 @@ impl VariableInterpolator {
         re.replace_all(template, |caps: &regex::Captures| {
             let key = &caps[1];
             if let Some(param_name) = key.strip_prefix("params.") {
-                params.get(param_name).cloned().unwrap_or_else(|| caps[0].to_string())
+                params
+                    .get(param_name)
+                    .cloned()
+                    .unwrap_or_else(|| caps[0].to_string())
             } else if let Some(env_name) = key.strip_prefix("env.") {
-                env_vars.get(env_name).cloned().unwrap_or_else(|| caps[0].to_string())
+                env_vars
+                    .get(env_name)
+                    .cloned()
+                    .unwrap_or_else(|| caps[0].to_string())
             } else if let Some(val) = params.get(key) {
                 val.clone()
             } else {
                 caps[0].to_string()
             }
-        }).to_string()
+        })
+        .to_string()
     }
 }
 
@@ -39,9 +46,13 @@ mod tests {
         let mut env = HashMap::new();
         env.insert("REGION".to_string(), "us-east-1".to_string());
 
-        let template = "run-job --date={{ params.date }} --target={{ target }} --region={{ env.REGION }}";
+        let template =
+            "run-job --date={{ params.date }} --target={{ target }} --region={{ env.REGION }}";
         let result = VariableInterpolator::interpolate(template, &params, &env);
 
-        assert_eq!(result, "run-job --date=2026-08-15 --target=prod_db --region=us-east-1");
+        assert_eq!(
+            result,
+            "run-job --date=2026-08-15 --target=prod_db --region=us-east-1"
+        );
     }
 }

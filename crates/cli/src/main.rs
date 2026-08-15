@@ -6,9 +6,17 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "flowforge")]
-#[command(about = "FlowForge - Cloud-Native Workload Orchestration Platform CLI", version = "0.2.0")]
+#[command(
+    about = "FlowForge - Cloud-Native Workload Orchestration Platform CLI",
+    version = "0.2.0"
+)]
 struct Cli {
-    #[arg(short, long, env = "FLOWFORGE_API_URL", default_value = "http://localhost:8080")]
+    #[arg(
+        short,
+        long,
+        env = "FLOWFORGE_API_URL",
+        default_value = "http://localhost:8080"
+    )]
     api_url: String,
 
     #[command(subcommand)]
@@ -127,13 +135,31 @@ async fn main() -> anyhow::Result<()> {
                 println!("{}", "=== FlowForge Cluster Status ===".bold().cyan());
                 println!("Active Workflows : {}", data["active_workflows"]);
                 println!("Total Runs       : {}", data["total_runs"]);
-                println!("Running Runs     : {}", data["running_runs"].to_string().yellow());
-                println!("Succeeded Runs   : {}", data["succeeded_runs"].to_string().green());
-                println!("Failed Runs      : {}", data["failed_runs"].to_string().red());
-                println!("Active Workers   : {}", data["active_workers"].to_string().blue());
-                println!("DLQ Count        : {}", data["dlq_count"].to_string().magenta());
+                println!(
+                    "Running Runs     : {}",
+                    data["running_runs"].to_string().yellow()
+                );
+                println!(
+                    "Succeeded Runs   : {}",
+                    data["succeeded_runs"].to_string().green()
+                );
+                println!(
+                    "Failed Runs      : {}",
+                    data["failed_runs"].to_string().red()
+                );
+                println!(
+                    "Active Workers   : {}",
+                    data["active_workers"].to_string().blue()
+                );
+                println!(
+                    "DLQ Count        : {}",
+                    data["dlq_count"].to_string().magenta()
+                );
                 println!("Scheduler Leader : {}", data["scheduler_leader_id"]);
-                println!("Scheduler Healthy: {}", data["scheduler_healthy"].to_string().green());
+                println!(
+                    "Scheduler Healthy: {}",
+                    data["scheduler_healthy"].to_string().green()
+                );
             } else {
                 println!("{}", "Failed to fetch status".red());
             }
@@ -184,7 +210,11 @@ async fn main() -> anyhow::Result<()> {
                     println!("{} Workflow definition is valid!", "✔".green());
                     println!("{}", serde_json::to_string_pretty(&res["data"])?);
                 } else {
-                    println!("{} Validation error: {}", "✖".red(), res["error"]["message"]);
+                    println!(
+                        "{} Validation error: {}",
+                        "✖".red(),
+                        res["error"]["message"]
+                    );
                 }
             }
             WorkflowCommands::Apply { file } => {
@@ -266,7 +296,10 @@ async fn main() -> anyhow::Result<()> {
             }
             RunCommands::Cancel { id } => {
                 let _res = client
-                    .post(format!("{}/api/v1/workflow-runs/{}/cancel", cli.api_url, id))
+                    .post(format!(
+                        "{}/api/v1/workflow-runs/{}/cancel",
+                        cli.api_url, id
+                    ))
                     .send()
                     .await?
                     .json::<Value>()

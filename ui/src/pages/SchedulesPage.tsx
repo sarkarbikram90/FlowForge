@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, PlayCircle, Zap, Globe } from 'lucide-react';
+import { Calendar, PlayCircle } from 'lucide-react';
 
 interface SchedulesPageProps {
   onTriggerWorkflow: (name: string) => void;

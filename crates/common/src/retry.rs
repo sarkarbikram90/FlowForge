@@ -1,6 +1,6 @@
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use rand::Rng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -101,7 +101,10 @@ mod tests {
 
     #[test]
     fn test_should_retry() {
-        let policy = RetryPolicy { max_attempts: 3, ..Default::default() };
+        let policy = RetryPolicy {
+            max_attempts: 3,
+            ..Default::default()
+        };
         assert!(policy.should_retry(1));
         assert!(policy.should_retry(2));
         assert!(!policy.should_retry(3));

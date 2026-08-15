@@ -1,3 +1,6 @@
+#![allow(clippy::too_many_arguments)]
+
+use crate::repository::{OutboxRecord, Repository};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use flowforge_common::{
@@ -7,7 +10,6 @@ use flowforge_common::{
 };
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
-use crate::repository::{OutboxRecord, Repository};
 
 pub struct PostgresDatabase {
     pool: PgPool,
@@ -19,9 +21,9 @@ impl PostgresDatabase {
     }
 
     pub async fn connect(url: &str) -> Result<Self> {
-        let pool = PgPool::connect(url)
-            .await
-            .map_err(|e| FlowForgeError::Database(format!("Failed to connect to PostgreSQL: {}", e)))?;
+        let pool = PgPool::connect(url).await.map_err(|e| {
+            FlowForgeError::Database(format!("Failed to connect to PostgreSQL: {}", e))
+        })?;
         Ok(Self { pool })
     }
 
@@ -89,14 +91,17 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| Organization {
-            id: r.get("id"),
-            name: r.get("name"),
-            slug: r.get("slug"),
-            is_active: r.get("is_active"),
-            created_at: r.get("created_at"),
-            updated_at: r.get("updated_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| Organization {
+                id: r.get("id"),
+                name: r.get("name"),
+                slug: r.get("slug"),
+                is_active: r.get("is_active"),
+                created_at: r.get("created_at"),
+                updated_at: r.get("updated_at"),
+            })
+            .collect())
     }
 
     async fn create_organization(&self, name: &str, slug: &str) -> Result<Organization> {
@@ -130,19 +135,28 @@ impl Repository for PostgresDatabase {
         .await
         .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| Project {
-            id: r.get("id"),
-            organization_id: r.get("organization_id"),
-            name: r.get("name"),
-            slug: r.get("slug"),
-            description: r.get("description"),
-            is_active: r.get("is_active"),
-            created_at: r.get("created_at"),
-            updated_at: r.get("updated_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| Project {
+                id: r.get("id"),
+                organization_id: r.get("organization_id"),
+                name: r.get("name"),
+                slug: r.get("slug"),
+                description: r.get("description"),
+                is_active: r.get("is_active"),
+                created_at: r.get("created_at"),
+                updated_at: r.get("updated_at"),
+            })
+            .collect())
     }
 
-    async fn create_project(&self, org_id: Uuid, name: &str, slug: &str, desc: Option<&str>) -> Result<Project> {
+    async fn create_project(
+        &self,
+        org_id: Uuid,
+        name: &str,
+        slug: &str,
+        desc: Option<&str>,
+    ) -> Result<Project> {
         let id = Uuid::new_v4();
         let r = sqlx::query(
             "INSERT INTO projects (id, organization_id, name, slug, description) VALUES ($1, $2, $3, $4, $5) RETURNING id, organization_id, name, slug, description, is_active, created_at, updated_at"
@@ -175,19 +189,28 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| User {
-            id: r.get("id"),
-            organization_id: r.get("organization_id"),
-            email: r.get("email"),
-            full_name: r.get("full_name"),
-            role: r.get("role"),
-            is_active: r.get("is_active"),
-            created_at: r.get("created_at"),
-            updated_at: r.get("updated_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| User {
+                id: r.get("id"),
+                organization_id: r.get("organization_id"),
+                email: r.get("email"),
+                full_name: r.get("full_name"),
+                role: r.get("role"),
+                is_active: r.get("is_active"),
+                created_at: r.get("created_at"),
+                updated_at: r.get("updated_at"),
+            })
+            .collect())
     }
 
-    async fn create_user(&self, org_id: Uuid, email: &str, full_name: &str, role: &str) -> Result<User> {
+    async fn create_user(
+        &self,
+        org_id: Uuid,
+        email: &str,
+        full_name: &str,
+        role: &str,
+    ) -> Result<User> {
         let id = Uuid::new_v4();
         let r = sqlx::query("INSERT INTO users (id, organization_id, email, full_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, organization_id, email, full_name, role, is_active, created_at, updated_at")
             .bind(id)
@@ -218,17 +241,20 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| Workflow {
-            id: r.get("id"),
-            organization_id: r.get("organization_id"),
-            project_id: r.get("project_id"),
-            name: r.get("name"),
-            description: r.get("description"),
-            is_active: r.get("is_active"),
-            concurrency_limit: r.get::<i32, _>("concurrency_limit") as u32,
-            created_at: r.get("created_at"),
-            updated_at: r.get("updated_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| Workflow {
+                id: r.get("id"),
+                organization_id: r.get("organization_id"),
+                project_id: r.get("project_id"),
+                name: r.get("name"),
+                description: r.get("description"),
+                is_active: r.get("is_active"),
+                concurrency_limit: r.get::<i32, _>("concurrency_limit") as u32,
+                created_at: r.get("created_at"),
+                updated_at: r.get("updated_at"),
+            })
+            .collect())
     }
 
     async fn get_workflow(&self, id: Uuid) -> Result<Workflow> {
@@ -398,18 +424,21 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| WorkflowVersion {
-            id: r.get("id"),
-            workflow_id: r.get("workflow_id"),
-            version_number: r.get::<i32, _>("version_number") as u32,
-            definition_yaml: r.get("definition_yaml"),
-            definition_json: r.get("definition_json"),
-            hash_sha256: r.get("hash_sha256"),
-            is_latest: r.get("is_latest"),
-            change_summary: r.get("change_summary"),
-            created_by: r.get("created_by"),
-            created_at: r.get("created_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| WorkflowVersion {
+                id: r.get("id"),
+                workflow_id: r.get("workflow_id"),
+                version_number: r.get::<i32, _>("version_number") as u32,
+                definition_yaml: r.get("definition_yaml"),
+                definition_json: r.get("definition_json"),
+                hash_sha256: r.get("hash_sha256"),
+                is_latest: r.get("is_latest"),
+                change_summary: r.get("change_summary"),
+                created_by: r.get("created_by"),
+                created_at: r.get("created_at"),
+            })
+            .collect())
     }
 
     async fn create_workflow_run(&self, run: WorkflowRun) -> Result<WorkflowRun> {
@@ -500,7 +529,11 @@ impl Repository for PostgresDatabase {
         })
     }
 
-    async fn get_workflow_run_by_idempotency_key(&self, project_id: Uuid, key: &str) -> Result<Option<WorkflowRun>> {
+    async fn get_workflow_run_by_idempotency_key(
+        &self,
+        project_id: Uuid,
+        key: &str,
+    ) -> Result<Option<WorkflowRun>> {
         let opt = sqlx::query("SELECT id, organization_id, project_id, workflow_id, workflow_version_id, idempotency_key, status, triggered_by, trigger_metadata, variables, started_at, finished_at, duration_ms, error_summary, created_at, updated_at FROM workflow_runs WHERE project_id = $1 AND idempotency_key = $2")
             .bind(project_id)
             .bind(key)
@@ -538,7 +571,12 @@ impl Repository for PostgresDatabase {
         }))
     }
 
-    async fn update_workflow_run_status(&self, id: Uuid, status: WorkflowState, error_summary: Option<String>) -> Result<()> {
+    async fn update_workflow_run_status(
+        &self,
+        id: Uuid,
+        status: WorkflowState,
+        error_summary: Option<String>,
+    ) -> Result<()> {
         let is_term = status.is_terminal();
         sqlx::query(
             r#"
@@ -571,34 +609,37 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| {
-            let status_str: String = r.get("status");
-            let status = match status_str.as_str() {
-                "RUNNING" => WorkflowState::Running,
-                "SUCCEEDED" => WorkflowState::Succeeded,
-                "FAILED" => WorkflowState::Failed,
-                "CANCELED" => WorkflowState::Canceled,
-                _ => WorkflowState::Pending,
-            };
-            WorkflowRun {
-                id: r.get("id"),
-                organization_id: r.get("organization_id"),
-                project_id: r.get("project_id"),
-                workflow_id: r.get("workflow_id"),
-                workflow_version_id: r.get("workflow_version_id"),
-                idempotency_key: r.get("idempotency_key"),
-                status,
-                triggered_by: r.get("triggered_by"),
-                trigger_metadata: r.get("trigger_metadata"),
-                variables: r.get("variables"),
-                started_at: r.get("started_at"),
-                finished_at: r.get("finished_at"),
-                duration_ms: r.get("duration_ms"),
-                error_summary: r.get("error_summary"),
-                created_at: r.get("created_at"),
-                updated_at: r.get("updated_at"),
-            }
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| {
+                let status_str: String = r.get("status");
+                let status = match status_str.as_str() {
+                    "RUNNING" => WorkflowState::Running,
+                    "SUCCEEDED" => WorkflowState::Succeeded,
+                    "FAILED" => WorkflowState::Failed,
+                    "CANCELED" => WorkflowState::Canceled,
+                    _ => WorkflowState::Pending,
+                };
+                WorkflowRun {
+                    id: r.get("id"),
+                    organization_id: r.get("organization_id"),
+                    project_id: r.get("project_id"),
+                    workflow_id: r.get("workflow_id"),
+                    workflow_version_id: r.get("workflow_version_id"),
+                    idempotency_key: r.get("idempotency_key"),
+                    status,
+                    triggered_by: r.get("triggered_by"),
+                    trigger_metadata: r.get("trigger_metadata"),
+                    variables: r.get("variables"),
+                    started_at: r.get("started_at"),
+                    finished_at: r.get("finished_at"),
+                    duration_ms: r.get("duration_ms"),
+                    error_summary: r.get("error_summary"),
+                    created_at: r.get("created_at"),
+                    updated_at: r.get("updated_at"),
+                }
+            })
+            .collect())
     }
 
     async fn create_task_run(&self, task_run: TaskRun) -> Result<TaskRun> {
@@ -685,36 +726,39 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| {
-            let status_str: String = r.get("status");
-            let status = match status_str.as_str() {
-                "RUNNING" => TaskState::Running,
-                "SUCCEEDED" => TaskState::Succeeded,
-                "FAILED" => TaskState::Failed,
-                "READY" => TaskState::Ready,
-                "DISPATCHED" => TaskState::Dispatched,
-                "LOST" => TaskState::Lost,
-                "DEAD_LETTER" => TaskState::DeadLetter,
-                _ => TaskState::Pending,
-            };
-            TaskRun {
-                id: r.get("id"),
-                workflow_run_id: r.get("workflow_run_id"),
-                task_id: r.get("task_id"),
-                task_type: r.get("task_type"),
-                status,
-                attempt_count: r.get::<i32, _>("attempt_count") as u32,
-                max_attempts: r.get::<i32, _>("max_attempts") as u32,
-                current_worker_id: r.get("current_worker_id"),
-                started_at: r.get("started_at"),
-                finished_at: r.get("finished_at"),
-                duration_ms: r.get("duration_ms"),
-                output_data: r.get("output_data"),
-                error_message: r.get("error_message"),
-                created_at: r.get("created_at"),
-                updated_at: r.get("updated_at"),
-            }
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| {
+                let status_str: String = r.get("status");
+                let status = match status_str.as_str() {
+                    "RUNNING" => TaskState::Running,
+                    "SUCCEEDED" => TaskState::Succeeded,
+                    "FAILED" => TaskState::Failed,
+                    "READY" => TaskState::Ready,
+                    "DISPATCHED" => TaskState::Dispatched,
+                    "LOST" => TaskState::Lost,
+                    "DEAD_LETTER" => TaskState::DeadLetter,
+                    _ => TaskState::Pending,
+                };
+                TaskRun {
+                    id: r.get("id"),
+                    workflow_run_id: r.get("workflow_run_id"),
+                    task_id: r.get("task_id"),
+                    task_type: r.get("task_type"),
+                    status,
+                    attempt_count: r.get::<i32, _>("attempt_count") as u32,
+                    max_attempts: r.get::<i32, _>("max_attempts") as u32,
+                    current_worker_id: r.get("current_worker_id"),
+                    started_at: r.get("started_at"),
+                    finished_at: r.get("finished_at"),
+                    duration_ms: r.get("duration_ms"),
+                    output_data: r.get("output_data"),
+                    error_message: r.get("error_message"),
+                    created_at: r.get("created_at"),
+                    updated_at: r.get("updated_at"),
+                }
+            })
+            .collect())
     }
 
     async fn update_task_run_status(
@@ -802,30 +846,33 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| {
-            let status_str: String = r.get("status");
-            let status = match status_str.as_str() {
-                "RUNNING" => TaskState::Running,
-                "SUCCEEDED" => TaskState::Succeeded,
-                "FAILED" => TaskState::Failed,
-                _ => TaskState::Pending,
-            };
-            TaskAttempt {
-                id: r.get("id"),
-                task_run_id: r.get("task_run_id"),
-                attempt_number: r.get::<i32, _>("attempt_number") as u32,
-                worker_id: r.get("worker_id"),
-                status,
-                started_at: r.get("started_at"),
-                finished_at: r.get("finished_at"),
-                exit_code: r.get("exit_code"),
-                stdout_log_path: r.get("stdout_log_path"),
-                stderr_log_path: r.get("stderr_log_path"),
-                error_message: r.get("error_message"),
-                duration_ms: r.get("duration_ms"),
-                created_at: r.get("created_at"),
-            }
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| {
+                let status_str: String = r.get("status");
+                let status = match status_str.as_str() {
+                    "RUNNING" => TaskState::Running,
+                    "SUCCEEDED" => TaskState::Succeeded,
+                    "FAILED" => TaskState::Failed,
+                    _ => TaskState::Pending,
+                };
+                TaskAttempt {
+                    id: r.get("id"),
+                    task_run_id: r.get("task_run_id"),
+                    attempt_number: r.get::<i32, _>("attempt_number") as u32,
+                    worker_id: r.get("worker_id"),
+                    status,
+                    started_at: r.get("started_at"),
+                    finished_at: r.get("finished_at"),
+                    exit_code: r.get("exit_code"),
+                    stdout_log_path: r.get("stdout_log_path"),
+                    stderr_log_path: r.get("stderr_log_path"),
+                    error_message: r.get("error_message"),
+                    duration_ms: r.get("duration_ms"),
+                    created_at: r.get("created_at"),
+                }
+            })
+            .collect())
     }
 
     async fn acquire_or_renew_task_lease(
@@ -889,19 +936,27 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| TaskLease {
-            task_run_id: r.get("task_run_id"),
-            worker_id: r.get("worker_id"),
-            attempt_id: r.get("attempt_id"),
-            lease_token: r.get("lease_token"),
-            lease_version: r.get("lease_version"),
-            acquired_at: r.get("acquired_at"),
-            expires_at: r.get("expires_at"),
-            heartbeat_at: r.get("heartbeat_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| TaskLease {
+                task_run_id: r.get("task_run_id"),
+                worker_id: r.get("worker_id"),
+                attempt_id: r.get("attempt_id"),
+                lease_token: r.get("lease_token"),
+                lease_version: r.get("lease_version"),
+                acquired_at: r.get("acquired_at"),
+                expires_at: r.get("expires_at"),
+                heartbeat_at: r.get("heartbeat_at"),
+            })
+            .collect())
     }
 
-    async fn try_acquire_scheduler_leader(&self, service_name: &str, leader_id: &str, duration_secs: u64) -> Result<bool> {
+    async fn try_acquire_scheduler_leader(
+        &self,
+        service_name: &str,
+        leader_id: &str,
+        duration_secs: u64,
+    ) -> Result<bool> {
         let res = sqlx::query(
             r#"
             INSERT INTO scheduler_leases (service_name, leader_id, lease_version, acquired_at, expires_at, heartbeat_at)
@@ -983,30 +1038,33 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| {
-            let status_str: String = r.get("status");
-            let status = match status_str.as_str() {
-                "ONLINE" => WorkerStatus::Online,
-                "DRAINING" => WorkerStatus::Draining,
-                "DEGRADED" => WorkerStatus::Degraded,
-                "OFFLINE" => WorkerStatus::Offline,
-                _ => WorkerStatus::Lost,
-            };
-            WorkerRegistration {
-                worker_id: r.get("worker_id"),
-                hostname: r.get("hostname"),
-                os: r.get("os"),
-                architecture: r.get("architecture"),
-                version: r.get("version"),
-                capabilities: r.get("capabilities"),
-                labels: serde_json::from_value(r.get("labels")).unwrap_or_default(),
-                max_concurrency: r.get::<i32, _>("max_concurrency") as u32,
-                current_load: r.get::<i32, _>("current_load") as u32,
-                status,
-                first_registered_at: r.get("first_registered_at"),
-                last_heartbeat_at: r.get("last_heartbeat_at"),
-            }
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| {
+                let status_str: String = r.get("status");
+                let status = match status_str.as_str() {
+                    "ONLINE" => WorkerStatus::Online,
+                    "DRAINING" => WorkerStatus::Draining,
+                    "DEGRADED" => WorkerStatus::Degraded,
+                    "OFFLINE" => WorkerStatus::Offline,
+                    _ => WorkerStatus::Lost,
+                };
+                WorkerRegistration {
+                    worker_id: r.get("worker_id"),
+                    hostname: r.get("hostname"),
+                    os: r.get("os"),
+                    architecture: r.get("architecture"),
+                    version: r.get("version"),
+                    capabilities: r.get("capabilities"),
+                    labels: serde_json::from_value(r.get("labels")).unwrap_or_default(),
+                    max_concurrency: r.get::<i32, _>("max_concurrency") as u32,
+                    current_load: r.get::<i32, _>("current_load") as u32,
+                    status,
+                    first_registered_at: r.get("first_registered_at"),
+                    last_heartbeat_at: r.get("last_heartbeat_at"),
+                }
+            })
+            .collect())
     }
 
     async fn set_worker_status(&self, worker_id: &str, status: WorkerStatus) -> Result<()> {
@@ -1048,25 +1106,30 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| OutboxRecord {
-            id: r.get("id"),
-            organization_id: r.get("organization_id"),
-            project_id: r.get("project_id"),
-            topic: r.get("topic"),
-            event_type: r.get("event_type"),
-            payload: r.get("payload"),
-            status: r.get("status"),
-            retry_count: r.get("retry_count"),
-            created_at: r.get("created_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| OutboxRecord {
+                id: r.get("id"),
+                organization_id: r.get("organization_id"),
+                project_id: r.get("project_id"),
+                topic: r.get("topic"),
+                event_type: r.get("event_type"),
+                payload: r.get("payload"),
+                status: r.get("status"),
+                retry_count: r.get("retry_count"),
+                created_at: r.get("created_at"),
+            })
+            .collect())
     }
 
     async fn mark_outbox_published(&self, id: Uuid) -> Result<()> {
-        sqlx::query("UPDATE outbox_messages SET status = 'PUBLISHED', published_at = NOW() WHERE id = $1")
-            .bind(id)
-            .execute(&self.pool)
-            .await
-            .map_err(|e| FlowForgeError::Database(e.to_string()))?;
+        sqlx::query(
+            "UPDATE outbox_messages SET status = 'PUBLISHED', published_at = NOW() WHERE id = $1",
+        )
+        .bind(id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| FlowForgeError::Database(e.to_string()))?;
         Ok(())
     }
 
@@ -1102,20 +1165,23 @@ impl Repository for PostgresDatabase {
             .await
             .map_err(|e| FlowForgeError::Database(e.to_string()))?;
 
-        Ok(rows.into_iter().map(|r| DeadLetterTask {
-            id: r.get("id"),
-            workflow_run_id: r.get("workflow_run_id"),
-            task_run_id: r.get("task_run_id"),
-            task_id: r.get("task_id"),
-            failure_reason: r.get("failure_reason"),
-            total_attempts: r.get::<i32, _>("total_attempts") as u32,
-            payload: r.get("payload"),
-            last_error: r.get("last_error"),
-            is_resolved: r.get("is_resolved"),
-            resolved_at: r.get("resolved_at"),
-            resolved_by: r.get("resolved_by"),
-            created_at: r.get("created_at"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| DeadLetterTask {
+                id: r.get("id"),
+                workflow_run_id: r.get("workflow_run_id"),
+                task_run_id: r.get("task_run_id"),
+                task_id: r.get("task_id"),
+                failure_reason: r.get("failure_reason"),
+                total_attempts: r.get::<i32, _>("total_attempts") as u32,
+                payload: r.get("payload"),
+                last_error: r.get("last_error"),
+                is_resolved: r.get("is_resolved"),
+                resolved_at: r.get("resolved_at"),
+                resolved_by: r.get("resolved_by"),
+                created_at: r.get("created_at"),
+            })
+            .collect())
     }
 
     async fn resolve_dlq(&self, id: Uuid, resolved_by: &str) -> Result<()> {
@@ -1163,42 +1229,72 @@ impl Repository for PostgresDatabase {
                 .map_err(|e| FlowForgeError::Database(e.to_string()))?,
         };
 
-        Ok(rows.into_iter().map(|r| AuditLog {
-            id: r.get("id"),
-            timestamp: r.get("timestamp"),
-            organization_id: r.get("organization_id"),
-            project_id: r.get("project_id"),
-            actor: r.get("actor"),
-            action: r.get("action"),
-            resource_type: r.get("resource_type"),
-            resource_id: r.get("resource_id"),
-            ip_address: r.get("ip_address"),
-            user_agent: r.get("user_agent"),
-            result: r.get("result"),
-            metadata: r.get("metadata"),
-        }).collect())
+        Ok(rows
+            .into_iter()
+            .map(|r| AuditLog {
+                id: r.get("id"),
+                timestamp: r.get("timestamp"),
+                organization_id: r.get("organization_id"),
+                project_id: r.get("project_id"),
+                actor: r.get("actor"),
+                action: r.get("action"),
+                resource_type: r.get("resource_type"),
+                resource_id: r.get("resource_id"),
+                ip_address: r.get("ip_address"),
+                user_agent: r.get("user_agent"),
+                result: r.get("result"),
+                metadata: r.get("metadata"),
+            })
+            .collect())
     }
 
     async fn get_system_stats(&self) -> Result<SystemStats> {
         let total_runs: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let running_runs: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs WHERE status = 'RUNNING'")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let succeeded_runs: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs WHERE status = 'SUCCEEDED'")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let failed_runs: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs WHERE status = 'FAILED'")
-            .fetch_one(&self.pool).await.unwrap_or(0);
+            .fetch_one(&self.pool)
+            .await
+            .unwrap_or(0);
+        let running_runs: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs WHERE status = 'RUNNING'")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
+        let succeeded_runs: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs WHERE status = 'SUCCEEDED'")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
+        let failed_runs: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM workflow_runs WHERE status = 'FAILED'")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
 
-        let queued_tasks: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM task_runs WHERE status IN ('READY', 'DISPATCHED')")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let running_tasks: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM task_runs WHERE status = 'RUNNING'")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let active_workers: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM worker_registrations WHERE status = 'ONLINE'")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let dlq_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM dead_letter_tasks WHERE is_resolved = FALSE")
-            .fetch_one(&self.pool).await.unwrap_or(0);
-        let active_wf: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workflows WHERE is_active = TRUE")
-            .fetch_one(&self.pool).await.unwrap_or(0);
+        let queued_tasks: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM task_runs WHERE status IN ('READY', 'DISPATCHED')",
+        )
+        .fetch_one(&self.pool)
+        .await
+        .unwrap_or(0);
+        let running_tasks: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM task_runs WHERE status = 'RUNNING'")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
+        let active_workers: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM worker_registrations WHERE status = 'ONLINE'")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
+        let dlq_count: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM dead_letter_tasks WHERE is_resolved = FALSE")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
+        let active_wf: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM workflows WHERE is_active = TRUE")
+                .fetch_one(&self.pool)
+                .await
+                .unwrap_or(0);
 
         let leader_id: Option<String> = sqlx::query_scalar("SELECT leader_id FROM scheduler_leases WHERE service_name = 'flowforge-scheduler' AND expires_at > NOW()")
             .fetch_optional(&self.pool).await.unwrap_or(None);

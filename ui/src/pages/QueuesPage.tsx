@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, AlertTriangle, RotateCw, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Layers, AlertTriangle, RotateCw, CheckCircle2 } from 'lucide-react';
 import { DeadLetterTask } from '../types';
 
 interface QueuesPageProps {

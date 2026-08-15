@@ -1,5 +1,5 @@
 import React from 'react';
-import { Server, Activity, ShieldAlert, Cpu, CheckCircle2, RotateCw } from 'lucide-react';
+import { Server } from 'lucide-react';
 import { WorkerRegistration } from '../types';
 
 interface WorkersPageProps {

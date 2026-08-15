@@ -4,11 +4,6 @@ import {
   Search,
   Plus,
   PlayCircle,
-  Clock,
-  Layers,
-  ArrowRight,
-  CheckCircle2,
-  FileCode,
 } from 'lucide-react';
 import { Workflow } from '../types';
 import { DagViewer } from '../components/DagViewer';
@@ -35,7 +30,6 @@ export const WorkflowsPage: React.FC<WorkflowsPageProps> = ({
       w.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Sample DAG representation for preview
   const sampleNodes = [
     { id: 'extract-users', name: 'Extract Users', type: 'shell', dependsOn: [] },
     { id: 'extract-orders', name: 'Extract Orders', type: 'shell', dependsOn: [] },

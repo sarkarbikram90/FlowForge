@@ -1,13 +1,13 @@
+use crate::condition::ConditionExecutor;
+use crate::container::ContainerExecutor;
+use crate::executor::TaskExecutor;
+use crate::http::HttpExecutor;
+use crate::script::ScriptExecutor;
+use crate::shell::ShellExecutor;
+use crate::wait::WaitExecutor;
+use flowforge_common::{FlowForgeError, Result};
 use std::collections::HashMap;
 use std::sync::Arc;
-use flowforge_common::{FlowForgeError, Result};
-use crate::executor::TaskExecutor;
-use crate::shell::ShellExecutor;
-use crate::http::HttpExecutor;
-use crate::container::ContainerExecutor;
-use crate::script::ScriptExecutor;
-use crate::wait::WaitExecutor;
-use crate::condition::ConditionExecutor;
 
 pub struct ExecutorRegistry {
     executors: HashMap<String, Arc<dyn TaskExecutor>>,
@@ -36,7 +36,8 @@ impl ExecutorRegistry {
     }
 
     pub fn register(&mut self, executor: Arc<dyn TaskExecutor>) {
-        self.executors.insert(executor.supported_type().to_string(), executor);
+        self.executors
+            .insert(executor.supported_type().to_string(), executor);
     }
 
     pub fn get(&self, task_type: &str) -> Result<Arc<dyn TaskExecutor>> {
@@ -47,12 +48,11 @@ impl ExecutorRegistry {
             other => other,
         };
 
-        self.executors
-            .get(resolved_type)
-            .cloned()
-            .ok_or_else(|| FlowForgeError::Validation(format!(
+        self.executors.get(resolved_type).cloned().ok_or_else(|| {
+            FlowForgeError::Validation(format!(
                 "No registered executor found for task type '{}'",
                 task_type
-            )))
+            ))
+        })
     }
 }

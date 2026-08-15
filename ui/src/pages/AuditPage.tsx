@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Search, Filter, Lock } from 'lucide-react';
+import { ShieldCheck, Search } from 'lucide-react';
 import { AuditLog } from '../types';
 
 interface AuditPageProps {

@@ -14,14 +14,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = MetricsRegistry::init();
 
     let config = PlatformConfig::default();
-    info!("Starting FlowForge HA Scheduler with database: {}", config.database_url);
+    info!(
+        "Starting FlowForge HA Scheduler with database: {}",
+        config.database_url
+    );
 
     let cancel_token = CancellationToken::new();
 
     // Setup graceful shutdown handler
     let cancel_token_clone = cancel_token.clone();
     tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.expect("Failed to listen for Ctrl+C");
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen for Ctrl+C");
         info!("Shutdown signal received, starting graceful termination...");
         cancel_token_clone.cancel();
     });
@@ -72,7 +77,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .await;
     });
 
-    info!("FlowForge HA Scheduler operational. Leader election, engine, and recovery loops active.");
+    info!(
+        "FlowForge HA Scheduler operational. Leader election, engine, and recovery loops active."
+    );
 
     let _ = tokio::join!(elector_handle, engine_handle, detector_handle);
     info!("FlowForge HA Scheduler shutdown complete.");

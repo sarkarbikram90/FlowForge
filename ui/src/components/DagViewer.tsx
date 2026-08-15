@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Clock, PlayCircle, AlertCircle, XCircle, Flame } from 'lucide-react';
-import { TaskRun, TaskState } from '../types';
+import { CheckCircle2, Clock, PlayCircle, XCircle } from 'lucide-react';
+import { TaskState } from '../types';
 
 export interface DagNode {
   id: string;
@@ -15,14 +15,12 @@ interface DagViewerProps {
   nodes: DagNode[];
   onSelectNode?: (nodeId: string) => void;
   selectedNodeId?: string;
-  highlightCriticalPath?: boolean;
 }
 
 export const DagViewer: React.FC<DagViewerProps> = ({
   nodes,
   onSelectNode,
   selectedNodeId,
-  highlightCriticalPath = true,
 }) => {
   const [zoom, setZoom] = useState(1);
 

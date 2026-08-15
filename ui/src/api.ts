@@ -174,7 +174,6 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> 
     }
     throw new Error(json.error?.message || 'API request failed');
   } catch (err) {
-    // If backend is unreachable or local demo mode, return realistic fallback
     console.warn(`[FlowForge API] Backend call to ${endpoint} fallback:`, err);
     return getFallbackData<T>(endpoint, options);
   }
@@ -184,7 +183,6 @@ function getFallbackData<T>(endpoint: string, options?: RequestInit): T {
   if (endpoint === '/stats') return MOCK_STATS as unknown as T;
   if (endpoint === '/workflows') {
     if (options?.method === 'POST') {
-      const parsed = JSON.parse((options.body as string) || '{}');
       const newWf: Workflow = {
         id: `wf-${Date.now()}`,
         organization_id: 'org-01',

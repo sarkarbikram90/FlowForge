@@ -1,0 +1,116 @@
+name: FlowForge CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  rust-quality:
+    name: Rust Code Quality & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Stable Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo Dependencies & Build Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "flowforge-cargo-cache"
+
+      - name: Check Code Formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy Linter (Strict)
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Workspace Compilation Check
+        run: cargo check --workspace --all-targets --all-features
+
+  rust-tests:
+    name: Rust Test Suite (${{ matrix.os }})
+    needs: [rust-quality]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Stable Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo Dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "flowforge-test-${{ matrix.os }}"
+
+      - name: Run Workspace Unit & Chaos Tests
+        run: cargo test --workspace --verbose
+
+      - name: Run Chaos Test Suite with Verbose Diagnostics
+        run: cargo test -p flowforge-chaos-tests -- --nocapture
+
+  frontend-quality:
+    name: Frontend UI Quality & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install UI Dependencies
+        run: npm ci
+
+      - name: Typecheck TypeScript Code (tsc)
+        run: npm run typecheck
+
+      - name: Run Vitest Component Tests
+        run: npm test
+
+      - name: Build Production UI Bundle
+        run: npm run build
+
+  helm-validation:
+    name: Helm Chart Validation & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.14.0"
+
+      - name: Lint Helm Chart
+        run: helm lint deploy/helm/flowforge
+
+      - name: Template Helm Chart (Dry-Run Render)
+        run: helm template flowforge deploy/helm/flowforge --debug

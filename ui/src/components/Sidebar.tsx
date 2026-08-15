@@ -8,7 +8,6 @@ import {
   Calendar,
   ShieldCheck,
   Settings,
-  AlertTriangle,
 } from 'lucide-react';
 
 export type TabType =

@@ -1,3 +1,6 @@
+#![allow(clippy::type_complexity, clippy::too_many_arguments)]
+
+use crate::repository::{OutboxRecord, Repository};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use flowforge_common::{
@@ -9,7 +12,6 @@ use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::repository::{OutboxRecord, Repository};
 
 #[derive(Clone, Default)]
 pub struct InMemoryDatabase {
@@ -132,7 +134,13 @@ impl Repository for InMemoryDatabase {
             .collect())
     }
 
-    async fn create_user(&self, org_id: Uuid, email: &str, full_name: &str, role: &str) -> Result<User> {
+    async fn create_user(
+        &self,
+        org_id: Uuid,
+        email: &str,
+        full_name: &str,
+        role: &str,
+    ) -> Result<User> {
         let user = User {
             id: Uuid::new_v4(),
             organization_id: org_id,
@@ -195,10 +203,13 @@ impl Repository for InMemoryDatabase {
             .cloned()
             .collect();
         matching.sort_by_key(|v| v.version_number);
-        matching.last().cloned().ok_or_else(|| FlowForgeError::NotFound {
-            entity_type: "WorkflowVersion".to_string(),
-            id: workflow_id.to_string(),
-        })
+        matching
+            .last()
+            .cloned()
+            .ok_or_else(|| FlowForgeError::NotFound {
+                entity_type: "WorkflowVersion".to_string(),
+                id: workflow_id.to_string(),
+            })
     }
 
     async fn get_version(&self, version_id: Uuid) -> Result<WorkflowVersion> {
@@ -284,7 +295,7 @@ impl Repository for InMemoryDatabase {
             .filter(|r| r.project_id == project_id)
             .cloned()
             .collect();
-        runs.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        runs.sort_by_key(|b| std::cmp::Reverse(b.created_at));
         runs.truncate(limit);
         Ok(runs)
     }
@@ -452,7 +463,12 @@ impl Repository for InMemoryDatabase {
                 return Ok(true);
             } else if *current_expires < now {
                 let new_ver = *ver + 1;
-                *leader_guard = Some((service_name.to_string(), leader_id.to_string(), expires, new_ver));
+                *leader_guard = Some((
+                    service_name.to_string(),
+                    leader_id.to_string(),
+                    expires,
+                    new_ver,
+                ));
                 return Ok(true);
             } else {
                 return Ok(false); // another leader active
@@ -595,10 +611,14 @@ impl Repository for InMemoryDatabase {
     async fn query_audit_logs(&self, org_id: Option<Uuid>, limit: usize) -> Result<Vec<AuditLog>> {
         let logs = self.audit_logs.read();
         let mut filtered: Vec<AuditLog> = match org_id {
-            Some(id) => logs.iter().filter(|l| l.organization_id == Some(id)).cloned().collect(),
+            Some(id) => logs
+                .iter()
+                .filter(|l| l.organization_id == Some(id))
+                .cloned()
+                .collect(),
             None => logs.clone(),
         };
-        filtered.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        filtered.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
         filtered.truncate(limit);
         Ok(filtered)
     }
@@ -611,13 +631,31 @@ impl Repository for InMemoryDatabase {
         let leader = self.scheduler_leader.read();
 
         let total_runs = runs.len() as u64;
-        let running_runs = runs.values().filter(|r| r.status == WorkflowState::Running).count() as u64;
-        let succeeded_runs = runs.values().filter(|r| r.status == WorkflowState::Succeeded).count() as u64;
-        let failed_runs = runs.values().filter(|r| r.status == WorkflowState::Failed).count() as u64;
+        let running_runs = runs
+            .values()
+            .filter(|r| r.status == WorkflowState::Running)
+            .count() as u64;
+        let succeeded_runs = runs
+            .values()
+            .filter(|r| r.status == WorkflowState::Succeeded)
+            .count() as u64;
+        let failed_runs = runs
+            .values()
+            .filter(|r| r.status == WorkflowState::Failed)
+            .count() as u64;
 
-        let queued_tasks = tasks.values().filter(|t| t.status == TaskState::Ready || t.status == TaskState::Dispatched).count() as u64;
-        let running_tasks = tasks.values().filter(|t| t.status == TaskState::Running).count() as u64;
-        let active_workers = workers.values().filter(|w| w.status == WorkerStatus::Online).count() as u64;
+        let queued_tasks = tasks
+            .values()
+            .filter(|t| t.status == TaskState::Ready || t.status == TaskState::Dispatched)
+            .count() as u64;
+        let running_tasks = tasks
+            .values()
+            .filter(|t| t.status == TaskState::Running)
+            .count() as u64;
+        let active_workers = workers
+            .values()
+            .filter(|w| w.status == WorkerStatus::Online)
+            .count() as u64;
         let dlq_count = dlq.values().filter(|d| !d.is_resolved).count() as u64;
 
         let success_rate = if total_runs > 0 {

@@ -1,3 +1,4 @@
+use crate::executor::{ExecutionContext, TaskExecutionResult, TaskExecutor};
 use async_trait::async_trait;
 use flowforge_common::{FlowForgeError, Result, TaskDispatchMessage, TaskState};
 use std::process::Stdio;
@@ -6,7 +7,6 @@ use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
-use crate::executor::{ExecutionContext, TaskExecutionResult, TaskExecutor};
 
 pub struct ScriptExecutor;
 
@@ -31,7 +31,12 @@ impl TaskExecutor for ScriptExecutor {
         cancel_token: CancellationToken,
     ) -> Result<TaskExecutionResult> {
         let start_time = Instant::now();
-        let script_code = ctx.message.script.as_deref().or(ctx.message.command.as_deref()).unwrap_or("");
+        let script_code = ctx
+            .message
+            .script
+            .as_deref()
+            .or(ctx.message.command.as_deref())
+            .unwrap_or("");
 
         info!(task_id = %ctx.message.task_id, "Executing script task (python/node fallback)");
 
@@ -61,15 +66,17 @@ impl TaskExecutor for ScriptExecutor {
                 };
                 fallback.stdout(Stdio::piped());
                 fallback.stderr(Stdio::piped());
-                fallback.spawn().map_err(|e| FlowForgeError::ExecutionFailed {
-                    task_id: ctx.message.task_id.clone(),
-                    reason: format!("Failed to spawn script execution: {}", e),
-                })?
+                fallback
+                    .spawn()
+                    .map_err(|e| FlowForgeError::ExecutionFailed {
+                        task_id: ctx.message.task_id.clone(),
+                        reason: format!("Failed to spawn script execution: {}", e),
+                    })?
             }
         };
 
-        let mut stdout_pipe = child.stdout.take();
-        let mut stderr_pipe = child.stderr.take();
+        let stdout_pipe = child.stdout.take();
+        let stderr_pipe = child.stderr.take();
 
         let timeout_duration = Duration::from_secs(ctx.message.timeout_secs.max(1));
 

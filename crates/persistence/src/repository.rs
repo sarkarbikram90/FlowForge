@@ -20,6 +20,7 @@ pub struct OutboxRecord {
     pub created_at: DateTime<Utc>,
 }
 
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 #[async_trait]
 pub trait Repository: Send + Sync {
     // Identity & Tenancy
@@ -27,9 +28,21 @@ pub trait Repository: Send + Sync {
     async fn list_organizations(&self) -> Result<Vec<Organization>>;
     async fn create_organization(&self, name: &str, slug: &str) -> Result<Organization>;
     async fn list_projects(&self, org_id: Uuid) -> Result<Vec<Project>>;
-    async fn create_project(&self, org_id: Uuid, name: &str, slug: &str, desc: Option<&str>) -> Result<Project>;
+    async fn create_project(
+        &self,
+        org_id: Uuid,
+        name: &str,
+        slug: &str,
+        desc: Option<&str>,
+    ) -> Result<Project>;
     async fn list_users(&self, org_id: Uuid) -> Result<Vec<User>>;
-    async fn create_user(&self, org_id: Uuid, email: &str, full_name: &str, role: &str) -> Result<User>;
+    async fn create_user(
+        &self,
+        org_id: Uuid,
+        email: &str,
+        full_name: &str,
+        role: &str,
+    ) -> Result<User>;
 
     // Workflows & Versions
     async fn list_workflows(&self, project_id: Uuid) -> Result<Vec<Workflow>>;
@@ -44,8 +57,17 @@ pub trait Repository: Send + Sync {
     // Executions
     async fn create_workflow_run(&self, run: WorkflowRun) -> Result<WorkflowRun>;
     async fn get_workflow_run(&self, id: Uuid) -> Result<WorkflowRun>;
-    async fn get_workflow_run_by_idempotency_key(&self, project_id: Uuid, key: &str) -> Result<Option<WorkflowRun>>;
-    async fn update_workflow_run_status(&self, id: Uuid, status: WorkflowState, error_summary: Option<String>) -> Result<()>;
+    async fn get_workflow_run_by_idempotency_key(
+        &self,
+        project_id: Uuid,
+        key: &str,
+    ) -> Result<Option<WorkflowRun>>;
+    async fn update_workflow_run_status(
+        &self,
+        id: Uuid,
+        status: WorkflowState,
+        error_summary: Option<String>,
+    ) -> Result<()>;
     async fn list_workflow_runs(&self, project_id: Uuid, limit: usize) -> Result<Vec<WorkflowRun>>;
 
     // Task Runs & Attempts
@@ -75,7 +97,12 @@ pub trait Repository: Send + Sync {
     async fn find_stale_task_leases(&self, cutoff: DateTime<Utc>) -> Result<Vec<TaskLease>>;
 
     // Scheduler Leader Election
-    async fn try_acquire_scheduler_leader(&self, service_name: &str, leader_id: &str, duration_secs: u64) -> Result<bool>;
+    async fn try_acquire_scheduler_leader(
+        &self,
+        service_name: &str,
+        leader_id: &str,
+        duration_secs: u64,
+    ) -> Result<bool>;
     async fn step_down_scheduler_leader(&self, service_name: &str, leader_id: &str) -> Result<()>;
 
     // Worker Registrations

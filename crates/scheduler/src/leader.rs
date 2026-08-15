@@ -1,34 +1,33 @@
-use flowforge_common::Result;
 use flowforge_persistence::Repository;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio_util::sync::CancellationToken;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 pub struct LeaderElector<R: Repository> {
     repo: Arc<R>,
     service_name: String,
-    instance_id: String,
+    node_id: String,
     lease_duration_secs: u64,
-    heartbeat_interval: Duration,
+    renew_interval: Duration,
     is_leader: Arc<AtomicBool>,
 }
 
-impl<R: Repository + 'static> LeaderElector<R> {
+impl<R: Repository> LeaderElector<R> {
     pub fn new(
         repo: Arc<R>,
         service_name: &str,
-        instance_id: &str,
+        node_id: &str,
         lease_duration_secs: u64,
-        heartbeat_interval: Duration,
+        renew_interval: Duration,
     ) -> Self {
         Self {
             repo,
             service_name: service_name.to_string(),
-            instance_id: instance_id.to_string(),
+            node_id: node_id.to_string(),
             lease_duration_secs,
-            heartbeat_interval,
+            renew_interval,
             is_leader: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -38,42 +37,45 @@ impl<R: Repository + 'static> LeaderElector<R> {
     }
 
     pub async fn run_election_loop(&self, cancel_token: CancellationToken) {
-        info!(instance_id = %self.instance_id, "Starting Leader Election loop");
+        info!(node_id = %self.node_id, "Starting Leader Election loop for {}", self.service_name);
 
         while !cancel_token.is_cancelled() {
-            match self
+            let acquired = match self
                 .repo
                 .try_acquire_scheduler_leader(
                     &self.service_name,
-                    &self.instance_id,
+                    &self.node_id,
                     self.lease_duration_secs,
                 )
                 .await
             {
-                Ok(acquired) => {
-                    let was_leader = self.is_leader.swap(acquired, Ordering::SeqCst);
-                    if acquired && !was_leader {
-                        info!(instance_id = %self.instance_id, "Acquired leadership lease! Stepped up to LEADER.");
-                    } else if !acquired && was_leader {
-                        warn!(instance_id = %self.instance_id, "Lost leadership lease! Stepped down to FOLLOWER.");
-                    }
-                }
+                Ok(status) => status,
                 Err(e) => {
-                    warn!(instance_id = %self.instance_id, error = %e, "Error attempting leader lease acquisition");
-                    self.is_leader.store(false, Ordering::SeqCst);
+                    error!(node_id = %self.node_id, "Leader election query failed: {}", e);
+                    false
                 }
+            };
+
+            let previously_leader = self.is_leader.swap(acquired, Ordering::SeqCst);
+
+            if acquired && !previously_leader {
+                info!(node_id = %self.node_id, "Elected as LEADER for {}", self.service_name);
+            } else if !acquired && previously_leader {
+                warn!(node_id = %self.node_id, "Lost leadership lease for {}", self.service_name);
             }
 
             tokio::select! {
                 _ = cancel_token.cancelled() => break,
-                _ = tokio::time::sleep(self.heartbeat_interval) => {}
+                _ = tokio::time::sleep(self.renew_interval) => {}
             }
         }
 
-        // Graceful step down
         if self.is_leader.load(Ordering::SeqCst) {
-            info!(instance_id = %self.instance_id, "Stepping down leadership on shutdown");
-            let _ = self.repo.step_down_scheduler_leader(&self.service_name, &self.instance_id).await;
+            info!(node_id = %self.node_id, "Stepping down from leadership gracefully");
+            let _ = self
+                .repo
+                .step_down_scheduler_leader(&self.service_name, &self.node_id)
+                .await;
             self.is_leader.store(false, Ordering::SeqCst);
         }
     }

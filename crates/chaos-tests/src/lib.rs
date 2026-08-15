@@ -1,16 +1,13 @@
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use flowforge_common::{
-        TaskDispatchMessage, TaskRun, TaskState, Workflow, WorkflowRun, WorkflowState,
-        WorkflowVersion,
-    };
+    use flowforge_common::{TaskRun, TaskState, Workflow, WorkflowRun, WorkflowState};
     use flowforge_execution_engine::ExecutorRegistry;
-    use flowforge_messaging::{InMemoryMessageBus, MessageBus, OutboxPublisher};
+    use flowforge_messaging::InMemoryMessageBus;
     use flowforge_persistence::{InMemoryDatabase, Repository};
     use flowforge_scheduler::{LeaderElector, SchedulerEngine, StaleLeaseDetector};
     use flowforge_worker::WorkerAgent;
-    use flowforge_workflow_engine::{DagGraph, WorkflowCompiler, WorkflowValidator};
+    use flowforge_workflow_engine::WorkflowCompiler;
     use std::sync::Arc;
     use std::time::Duration;
     use tokio_util::sync::CancellationToken;
@@ -166,7 +163,10 @@ spec:
 
         let final_l1 = elector1_arc.is_leader();
         let final_l2 = elector2_arc.is_leader();
-        assert!(final_l1 || final_l2, "Standby node must take over leadership");
+        assert!(
+            final_l1 || final_l2,
+            "Standby node must take over leadership"
+        );
 
         cancel1.cancel();
         cancel2.cancel();
@@ -220,7 +220,7 @@ spec:
         repo.create_task_run(task_run).await.unwrap();
 
         // Simulate expired lease
-        let lease = repo
+        let _lease = repo
             .acquire_or_renew_task_lease(task_run_id, "crashed-worker", Uuid::new_v4(), 1)
             .await
             .unwrap();

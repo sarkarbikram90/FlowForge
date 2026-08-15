@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Role {
@@ -12,9 +13,11 @@ pub enum Role {
     Auditor,
 }
 
-impl Role {
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
+impl FromStr for Role {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s.to_lowercase().as_str() {
             "platformadmin" | "platform_admin" => Role::PlatformAdmin,
             "orgadmin" | "org_admin" => Role::OrgAdmin,
             "projectadmin" | "project_admin" => Role::ProjectAdmin,
@@ -22,7 +25,13 @@ impl Role {
             "workflowoperator" | "workflow_operator" | "operator" => Role::WorkflowOperator,
             "auditor" => Role::Auditor,
             _ => Role::Viewer,
-        }
+        })
+    }
+}
+
+impl Role {
+    pub fn parse(s: &str) -> Self {
+        Role::from_str(s).unwrap_or(Role::Viewer)
     }
 
     pub fn permissions(&self) -> HashSet<&'static str> {

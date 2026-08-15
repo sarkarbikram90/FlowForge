@@ -1,6 +1,6 @@
+use crate::error::{FlowForgeError, Result};
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use crate::error::{FlowForgeError, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -69,10 +69,9 @@ impl WorkflowState {
                 next,
                 WorkflowState::Running | WorkflowState::Canceling | WorkflowState::Canceled
             ),
-            WorkflowState::Canceling => matches!(
-                next,
-                WorkflowState::Canceled | WorkflowState::Failed
-            ),
+            WorkflowState::Canceling => {
+                matches!(next, WorkflowState::Canceled | WorkflowState::Failed)
+            }
             WorkflowState::Retrying => matches!(
                 next,
                 WorkflowState::Running | WorkflowState::Canceling | WorkflowState::Failed
@@ -167,10 +166,7 @@ impl TaskState {
                 next,
                 TaskState::Ready | TaskState::Canceled | TaskState::Failed
             ),
-            TaskState::Ready => matches!(
-                next,
-                TaskState::Dispatched | TaskState::Canceled
-            ),
+            TaskState::Ready => matches!(next, TaskState::Dispatched | TaskState::Canceled),
             TaskState::Dispatched => matches!(
                 next,
                 TaskState::Running | TaskState::Lost | TaskState::Canceled | TaskState::RetryWait

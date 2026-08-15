@@ -4,14 +4,9 @@ import {
   AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
-  Clock,
-  Flame,
-  Layers,
   PlayCircle,
   Server,
   TrendingUp,
-  XCircle,
-  Zap,
 } from 'lucide-react';
 import { SystemStats, WorkflowRun } from '../types';
 
@@ -157,7 +152,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
                 const heightPercent = Math.min(100, Math.round((val / 300) * 100));
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-                    {/* Tooltip */}
                     <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-950 text-[10px] font-mono text-cyan-300 px-1.5 py-0.5 rounded border border-slate-800 pointer-events-none z-10 whitespace-nowrap">
                       {val} tasks
                     </div>

@@ -1,3 +1,4 @@
+use crate::executor::{ExecutionContext, TaskExecutionResult, TaskExecutor};
 use async_trait::async_trait;
 use flowforge_common::{FlowForgeError, Result, TaskDispatchMessage, TaskState};
 use std::process::Stdio;
@@ -6,7 +7,6 @@ use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
-use crate::executor::{ExecutionContext, TaskExecutionResult, TaskExecutor};
 
 pub struct ContainerExecutor;
 
@@ -37,7 +37,11 @@ impl TaskExecutor for ContainerExecutor {
         info!(task_id = %ctx.message.task_id, image = %image, "Executing container task");
 
         // Build docker run command
-        let container_name = format!("ff-{}-{}", &ctx.message.task_id, &ctx.attempt_id.to_string()[..8]);
+        let container_name = format!(
+            "ff-{}-{}",
+            &ctx.message.task_id,
+            &ctx.attempt_id.to_string()[..8]
+        );
         let mut docker_cmd = Command::new("docker");
         docker_cmd.args(["run", "--rm", "--name", &container_name]);
 
@@ -64,15 +68,18 @@ impl TaskExecutor for ContainerExecutor {
                 return Ok(TaskExecutionResult {
                     status: TaskState::Succeeded,
                     exit_code: Some(0),
-                    output: Some(format!("Simulated container execution for image '{}' (command: '{}')", image, cmd_override)),
+                    output: Some(format!(
+                        "Simulated container execution for image '{}' (command: '{}')",
+                        image, cmd_override
+                    )),
                     error: None,
                     duration: start_time.elapsed(),
                 });
             }
         };
 
-        let mut stdout_pipe = child.stdout.take();
-        let mut stderr_pipe = child.stderr.take();
+        let stdout_pipe = child.stdout.take();
+        let stderr_pipe = child.stderr.take();
 
         let timeout_duration = Duration::from_secs(ctx.message.timeout_secs.max(1));
 

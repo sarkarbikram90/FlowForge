@@ -25,7 +25,9 @@ impl Default for PlatformConfig {
         Self {
             database_url: std::env::var("FLOWFORGE_DATABASE_URL")
                 .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| "postgres://flowforge:flowforge@localhost:5432/flowforge".to_string()),
+                .unwrap_or_else(|_| {
+                    "postgres://flowforge:flowforge@localhost:5432/flowforge".to_string()
+                }),
             nats_url: std::env::var("FLOWFORGE_NATS_URL")
                 .or_else(|_| std::env::var("NATS_URL"))
                 .unwrap_or_else(|_| "nats://localhost:4222".to_string()),
@@ -51,8 +53,10 @@ impl Default for PlatformConfig {
             object_storage_endpoint: std::env::var("FLOWFORGE_OBJECT_STORAGE_ENDPOINT").ok(),
             object_storage_bucket: std::env::var("FLOWFORGE_OBJECT_STORAGE_BUCKET").ok(),
             oidc_issuer: std::env::var("FLOWFORGE_OIDC_ISSUER").ok(),
-            jwt_secret: std::env::var("JWT_SECRET").unwrap_or_else(|_| "flowforge-dev-secret-key-super-secure".to_string()),
-            environment: std::env::var("FLOWFORGE_ENV").unwrap_or_else(|_| "development".to_string()),
+            jwt_secret: std::env::var("JWT_SECRET")
+                .unwrap_or_else(|_| "flowforge-dev-secret-key-super-secure".to_string()),
+            environment: std::env::var("FLOWFORGE_ENV")
+                .unwrap_or_else(|_| "development".to_string()),
         }
     }
 }

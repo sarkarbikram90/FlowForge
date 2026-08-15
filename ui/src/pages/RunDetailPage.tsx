@@ -1,19 +1,10 @@
 import React, { useState } from 'react';
 import {
-  CheckCircle2,
-  Clock,
-  PlayCircle,
-  XCircle,
-  RotateCw,
   Ban,
   Terminal,
   Search,
-  Filter,
   ArrowLeft,
-  Flame,
-  Layers,
 } from 'lucide-react';
-import { TaskRun, WorkflowRun } from '../types';
 import { DagViewer } from '../components/DagViewer';
 
 interface RunDetailPageProps {

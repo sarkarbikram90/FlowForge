@@ -1,9 +1,9 @@
+use crate::bus::MessageBus;
 use flowforge_persistence::Repository;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
-use crate::bus::MessageBus;
 
 pub struct OutboxPublisher<R: Repository, B: MessageBus> {
     repo: Arc<R>,

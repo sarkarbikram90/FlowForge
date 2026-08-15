@@ -23,7 +23,8 @@ impl MetricsRegistry {
 
     pub fn record_task_executed(task_type: &str, status: &str, duration_secs: f64) {
         counter!("flowforge_tasks_total", "type" => task_type.to_string(), "status" => status.to_string()).increment(1);
-        histogram!("flowforge_task_execution_duration_seconds", "type" => task_type.to_string()).record(duration_secs);
+        histogram!("flowforge_task_execution_duration_seconds", "type" => task_type.to_string())
+            .record(duration_secs);
     }
 
     pub fn record_task_retry(task_id: &str) {

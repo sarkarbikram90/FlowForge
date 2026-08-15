@@ -2,9 +2,7 @@ import React from 'react';
 import {
   Activity,
   Layers,
-  Search,
   Plus,
-  Radio,
   Server,
   Zap,
 } from 'lucide-react';

@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::algo::{is_cyclic_directed, toposort};
 use flowforge_common::{FlowForgeError, Result, TaskSpec};
+use petgraph::algo::{is_cyclic_directed, toposort};
+use petgraph::graph::{DiGraph, NodeIndex};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct DagGraph {

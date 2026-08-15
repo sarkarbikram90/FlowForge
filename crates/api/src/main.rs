@@ -13,7 +13,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = PlatformConfig::default();
     let addr: SocketAddr = format!("{}:{}", config.api_host, config.api_port).parse()?;
 
-    info!("Connecting to PostgreSQL database at: {}", config.database_url);
+    info!(
+        "Connecting to PostgreSQL database at: {}",
+        config.database_url
+    );
     let app_state = match PostgresDatabase::connect(&config.database_url).await {
         Ok(db) => {
             info!("Connected to PostgreSQL successfully");

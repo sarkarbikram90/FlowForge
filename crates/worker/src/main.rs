@@ -15,17 +15,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = PlatformConfig::default();
     info!(
-        worker_id = %config.worker_id,
-        concurrency = config.worker_concurrency,
-        "Starting FlowForge Worker Agent"
+        "Starting FlowForge Worker connected to: {}",
+        config.database_url
     );
 
     let cancel_token = CancellationToken::new();
 
-    // Setup graceful shutdown handler
     let cancel_token_clone = cancel_token.clone();
     tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.expect("Failed to listen for Ctrl+C");
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen for Ctrl+C");
         info!("Shutdown signal received, starting graceful worker draining...");
         cancel_token_clone.cancel();
     });
@@ -35,12 +35,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bus = Arc::new(InMemoryMessageBus::new());
     let executors = Arc::new(ExecutorRegistry::default());
 
+    let worker_id = std::env::var("WORKER_ID")
+        .unwrap_or_else(|_| format!("worker-{}", &uuid::Uuid::new_v4().to_string()[..8]));
+
     let worker = Arc::new(WorkerAgent::new(
-        &config.worker_id,
-        repo.clone(),
-        bus.clone(),
-        executors.clone(),
-        config.worker_concurrency,
+        &worker_id,
+        repo,
+        bus,
+        executors,
+        config.worker_concurrency as u32,
     ));
 
     worker.register().await?;
@@ -48,7 +51,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let heartbeat_token = cancel_token.clone();
     let worker_for_heartbeat = worker.clone();
     let heartbeat_handle = tokio::spawn(async move {
-        worker_for_heartbeat.run_heartbeat_loop(heartbeat_token).await;
+        worker_for_heartbeat
+            .run_heartbeat_loop(heartbeat_token)
+            .await;
     });
 
     let pull_token = cancel_token.clone();
@@ -57,10 +62,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         worker_for_pull.run_task_pull_loop(pull_token).await;
     });
 
-    info!("FlowForge Worker Agent active and pulling tasks.");
+    info!(
+        "FlowForge Worker Agent '{}' is active and consuming tasks",
+        worker_id
+    );
 
     let _ = tokio::join!(heartbeat_handle, pull_handle);
-    info!("FlowForge Worker Agent shutdown complete.");
+    info!(
+        "FlowForge Worker Agent '{}' shutdown gracefully.",
+        worker_id
+    );
 
     Ok(())
 }

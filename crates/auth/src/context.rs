@@ -1,6 +1,6 @@
+use crate::rbac::Role;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::rbac::Role;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthContext {

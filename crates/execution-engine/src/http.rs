@@ -1,10 +1,10 @@
+use crate::executor::{ExecutionContext, TaskExecutionResult, TaskExecutor};
 use async_trait::async_trait;
 use flowforge_common::{FlowForgeError, Result, TaskDispatchMessage, TaskState};
 use reqwest::Client;
 use std::time::{Duration, Instant};
 use tokio_util::sync::CancellationToken;
 use tracing::info;
-use crate::executor::{ExecutionContext, TaskExecutionResult, TaskExecutor};
 
 pub struct HttpExecutor {
     client: Client,
@@ -43,7 +43,12 @@ impl TaskExecutor for HttpExecutor {
     ) -> Result<TaskExecutionResult> {
         let start_time = Instant::now();
         let url = ctx.message.url.as_deref().unwrap_or("");
-        let method_str = ctx.message.method.as_deref().unwrap_or("GET").to_uppercase();
+        let method_str = ctx
+            .message
+            .method
+            .as_deref()
+            .unwrap_or("GET")
+            .to_uppercase();
 
         info!(task_id = %ctx.message.task_id, method = %method_str, url = %url, "Executing HTTP task");
 

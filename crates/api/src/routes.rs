@@ -1,12 +1,12 @@
+use crate::handlers;
+use crate::openapi::get_openapi_json;
+use crate::state::AppState;
 use axum::{
     routing::{get, post},
     Router,
 };
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
-use crate::handlers;
-use crate::openapi::get_openapi_json;
-use crate::state::AppState;
 
 pub fn create_router(state: AppState) -> Router {
     let cors = CorsLayer::new()
@@ -26,18 +26,36 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/v1/auth/keys", post(handlers::generate_api_key))
         // Tenancy
         .route("/api/v1/organizations", get(handlers::list_organizations))
-        .route("/api/v1/organizations/:org_id/projects", get(handlers::list_projects))
+        .route(
+            "/api/v1/organizations/:org_id/projects",
+            get(handlers::list_projects),
+        )
         // Workflows
-        .route("/api/v1/workflows", get(handlers::list_workflows).post(handlers::apply_workflow))
+        .route(
+            "/api/v1/workflows",
+            get(handlers::list_workflows).post(handlers::apply_workflow),
+        )
         .route("/api/v1/workflows/:id", get(handlers::get_workflow))
-        .route("/api/v1/workflows/validate", post(handlers::validate_workflow))
+        .route(
+            "/api/v1/workflows/validate",
+            post(handlers::validate_workflow),
+        )
         // Runs
-        .route("/api/v1/workflow-runs", get(handlers::list_workflow_runs).post(handlers::trigger_workflow_run))
+        .route(
+            "/api/v1/workflow-runs",
+            get(handlers::list_workflow_runs).post(handlers::trigger_workflow_run),
+        )
         .route("/api/v1/workflow-runs/:id", get(handlers::get_workflow_run))
-        .route("/api/v1/workflow-runs/:id/cancel", post(handlers::cancel_workflow_run))
+        .route(
+            "/api/v1/workflow-runs/:id/cancel",
+            post(handlers::cancel_workflow_run),
+        )
         // Workers
         .route("/api/v1/workers", get(handlers::list_workers))
-        .route("/api/v1/workers/:worker_id/drain", post(handlers::drain_worker))
+        .route(
+            "/api/v1/workers/:worker_id/drain",
+            post(handlers::drain_worker),
+        )
         // DLQ
         .route("/api/v1/dlq", get(handlers::list_dlq))
         .route("/api/v1/dlq/:id/resolve", post(handlers::resolve_dlq_item))
