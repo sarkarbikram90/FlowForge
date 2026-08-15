@@ -1,0 +1,9 @@
+# Cargo-audit configuration
+[advisories]
+ignore = [
+    "RUSTSEC-2026-0104", # rustls-webpki unreachable panic in CRL
+    "RUSTSEC-2024-0421", # Unmaintained transient crate
+    "RUSTSEC-2024-0370", # Transient TLS advisory
+    "RUSTSEC-2024-0436", # Transient dependency
+]
+informational_warnings = ["unmaintained", "yanked"]
