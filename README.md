@@ -3,6 +3,69 @@
   <h1>⚡ FlowForge</h1>
   <p><strong>Cloud-Native, Rust-Powered Distributed Workload Orchestration Platform</strong></p>
   <p>Scheduled, event-driven, observable and fault-tolerant workflow automation across containers, Kubernetes, servers, scripts and APIs.</p>
+
+  <p>
+    <!-- CI / CD Status Badges -->
+    <a href="https://github.com/sarkarbikram90/FlowForge/actions/workflows/ci.yml">
+      <img src="https://github.com/sarkarbikram90/FlowForge/actions/workflows/ci.yml/badge.svg" alt="FlowForge CI" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/actions/workflows/security.yml">
+      <img src="https://github.com/sarkarbikram90/FlowForge/actions/workflows/security.yml/badge.svg" alt="Security & Supply Chain" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/actions/workflows/e2e.yml">
+      <img src="https://github.com/sarkarbikram90/FlowForge/actions/workflows/e2e.yml/badge.svg" alt="E2E & Integration Tests" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/actions/workflows/release.yml">
+      <img src="https://github.com/sarkarbikram90/FlowForge/actions/workflows/release.yml/badge.svg" alt="Release Pipeline" />
+    </a>
+  </p>
+
+  <p>
+    <!-- Quality & Security Governance -->
+    <a href="deny.toml">
+      <img src="https://img.shields.io/badge/cargo--deny-compliant-success?logo=rust&logoColor=white&style=flat-square" alt="Cargo Deny Compliant" />
+    </a>
+    <a href="audit.toml">
+      <img src="https://img.shields.io/badge/RustSec-audited-success?logo=security&logoColor=white&style=flat-square" alt="RustSec Audited" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/blob/main/ui/package.json">
+      <img src="https://img.shields.io/badge/npm%20audit-0%20vulnerabilities-brightgreen?logo=npm&style=flat-square" alt="NPM Audit Clean" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/badge/clippy--D-warnings%20passed-000000?logo=rust&logoColor=white&style=flat-square" alt="Clippy Strict Passed" />
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-Apache--2.0%20%2F%20MIT-blue.svg?style=flat-square" alt="License" />
+    </a>
+  </p>
+
+  <p>
+    <!-- Tech Stack Badges -->
+    <img src="https://img.shields.io/badge/Rust-1.85%2B-dea584?logo=rust&logoColor=white&style=flat-square" alt="Rust 1.85+" />
+    <img src="https://img.shields.io/badge/Async%20Engine-Tokio-brightgreen?logo=tokio&style=flat-square" alt="Tokio Async Engine" />
+    <img src="https://img.shields.io/badge/HTTP%20Gateway-Axum-000000?logo=rust&logoColor=white&style=flat-square" alt="Axum HTTP Gateway" />
+    <img src="https://img.shields.io/badge/Database-PostgreSQL%2016%2B-4169E1?logo=postgresql&logoColor=white&style=flat-square" alt="PostgreSQL 16+" />
+    <img src="https://img.shields.io/badge/Messaging-NATS%20JetStream-27AAE1?logo=nats.io&logoColor=white&style=flat-square" alt="NATS JetStream" />
+    <img src="https://img.shields.io/badge/Frontend-React%2018%20%7C%20TS-61DAFB?logo=react&logoColor=black&style=flat-square" alt="React 18 & TypeScript" />
+    <img src="https://img.shields.io/badge/Container-Docker-2496ED?logo=docker&logoColor=white&style=flat-square" alt="Docker Container" />
+    <img src="https://img.shields.io/badge/Orchestration-Kubernetes%20%2F%20Helm-326CE5?logo=kubernetes&logoColor=white&style=flat-square" alt="Kubernetes Helm" />
+  </p>
+
+  <p>
+    <!-- GitHub Community & Stats -->
+    <a href="https://github.com/sarkarbikram90/FlowForge/releases">
+      <img src="https://img.shields.io/github/v/release/sarkarbikram90/FlowForge?include_prereleases&color=orange&style=flat-square" alt="Latest Release" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/stargazers">
+      <img src="https://img.shields.io/github/stars/sarkarbikram90/FlowForge?style=flat-square&color=gold" alt="GitHub Stars" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/network/members">
+      <img src="https://img.shields.io/github/forks/sarkarbikram90/FlowForge?style=flat-square&color=blueviolet" alt="GitHub Forks" />
+    </a>
+    <a href="https://github.com/sarkarbikram90/FlowForge/issues">
+      <img src="https://img.shields.io/github/issues/sarkarbikram90/FlowForge?style=flat-square&color=teal" alt="GitHub Issues" />
+    </a>
+  </p>
 </div>
 
 ---
@@ -149,4 +212,9 @@ helm install flowforge ./deploy/helm/flowforge
 
 ## 📜 License
 
-MIT License.
+Licensed under either of:
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE) or http://opensource.org/licenses/MIT)
+
+at your option.
