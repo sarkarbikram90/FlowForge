@@ -21,6 +21,7 @@ jobs:
   cargo-audit:
     name: Cargo Security Audit (RustSec)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -33,6 +34,7 @@ jobs:
   cargo-deny:
     name: Cargo License, Bans & Source Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -46,6 +48,7 @@ jobs:
   npm-audit:
     name: Frontend Dependency Security Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: ui
@@ -64,6 +67,7 @@ jobs:
   gitleaks:
     name: Secret & Credential Scanning
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -79,6 +83,7 @@ jobs:
   trivy-scan:
     name: Container CVE & Vulnerability Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -87,7 +92,7 @@ jobs:
         run: docker build -t flowforge:security-scan -f Dockerfile .
 
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: "flowforge:security-scan"
           format: "table"
