@@ -19,6 +19,7 @@ jobs:
   build-binaries:
     name: Build Cross-Platform Binaries (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -48,15 +49,17 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Stable Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install Cross Compilation Tools
+      - name: Install Cross (Locked)
         if: matrix.use_cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
+        run: cargo install cross --locked
 
       - name: Build Release Binaries
         shell: bash
@@ -83,10 +86,12 @@ jobs:
         if: matrix.archive_ext == 'zip'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path dist\${{ matrix.artifact_name }} -Force
-          Copy-Item target\${{ matrix.target }}\release\*.exe dist\${{ matrix.artifact_name }}\ -ErrorAction SilentlyContinue
-          Copy-Item README.md, LICENSE dist\${{ matrix.artifact_name }}\ -ErrorAction SilentlyContinue
-          Compress-Archive -Path dist\${{ matrix.artifact_name }}\* -DestinationPath ${{ matrix.artifact_name }}.zip
+          $dist = "dist\${{ matrix.artifact_name }}"
+          New-Item -ItemType Directory -Path $dist -Force | Out-Null
+          Copy-Item -Path "target\${{ matrix.target }}\release\*.exe" -Destination $dist -ErrorAction SilentlyContinue
+          Copy-Item -Path "target\release\*.exe" -Destination $dist -ErrorAction SilentlyContinue
+          Copy-Item -Path "README.md","LICENSE" -Destination $dist -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$dist\*" -DestinationPath "${{ matrix.artifact_name }}.zip" -Force
 
       - name: Upload Binary Artifact
         uses: actions/upload-artifact@v4
@@ -97,9 +102,12 @@ jobs:
   docker-publish:
     name: Build & Push Multi-Arch Container Images
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup QEMU for Multi-Architecture Emulation
         uses: docker/setup-qemu-action@v3
@@ -139,6 +147,7 @@ jobs:
   helm-package:
     name: Package & Publish Helm Chart
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -146,7 +155,7 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
         with:
-          version: "v3.14.0"
+          version: "3.14.0"
 
       - name: Package Helm Chart
         run: |
@@ -164,10 +173,13 @@ jobs:
     name: Create GitHub Release
     needs: [build-binaries, docker-publish, helm-package]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download All Release Artifacts
         uses: actions/download-artifact@v4

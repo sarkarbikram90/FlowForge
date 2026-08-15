@@ -13,17 +13,18 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  DATABASE_URL: "postgres://flowforge:flowforge@localhost:5432/flowforge"
-  NATS_URL: "nats://localhost:4222"
-  S3_ENDPOINT: "http://localhost:9000"
-  S3_ACCESS_KEY: "minioadmin"
-  S3_SECRET_KEY: "minioadmin"
-  S3_BUCKET: "flowforge-artifacts"
+  DATABASE_URL: "${{ secrets.E2E_DATABASE_URL || 'postgres://flowforge:flowforge@localhost:5432/flowforge' }}"
+  NATS_URL: "${{ secrets.E2E_NATS_URL || 'nats://localhost:4222' }}"
+  S3_ENDPOINT: "${{ secrets.E2E_S3_ENDPOINT || 'http://localhost:9000' }}"
+  S3_ACCESS_KEY: "${{ secrets.E2E_S3_ACCESS_KEY || 'minioadmin' }}"
+  S3_SECRET_KEY: "${{ secrets.E2E_S3_SECRET_KEY || 'minioadmin' }}"
+  S3_BUCKET: "${{ secrets.E2E_S3_BUCKET || 'flowforge-artifacts' }}"
 
 jobs:
   integration-tests:
     name: Live Infrastructure Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Checkout Source Code
@@ -42,23 +43,30 @@ jobs:
           echo "Starting backing infrastructure via Docker Compose..."
           docker compose up -d postgres nats minio
           
-          echo "Waiting for PostgreSQL to be healthy..."
+          echo "Waiting for PostgreSQL container to report ready..."
+          READY=false
           for i in {1..30}; do
             if docker compose exec -T postgres pg_isready -U flowforge; then
               echo "PostgreSQL is ready!"
+              READY=true
               break
             fi
             echo "Waiting for PostgreSQL (attempt $i/30)..."
             sleep 1
           done
 
+          if [ "$READY" = "false" ]; then
+            echo "PostgreSQL failed to become ready in time. Printing container logs:"
+            docker compose logs postgres
+            exit 1
+          fi
+
       - name: Apply PostgreSQL Schema Migrations
         run: |
-          echo "Applying versioned SQL migrations to live PostgreSQL instance..."
-          sudo apt-get update && sudo apt-get install -y postgresql-client
+          echo "Applying versioned SQL migrations into postgres container..."
           for migration in $(ls -1 migrations/*.sql | sort); do
             echo "Applying $migration..."
-            PGPASSWORD=flowforge psql -h localhost -U flowforge -d flowforge -f "$migration"
+            cat "$migration" | docker compose exec -T postgres psql -U flowforge -d flowforge
           done
           echo "Database schema migrations applied successfully!"
 
@@ -75,6 +83,7 @@ jobs:
   docker-smoke-test:
     name: Production Container Smoke Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
