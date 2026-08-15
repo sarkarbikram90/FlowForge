@@ -12,7 +12,7 @@ targets = [
 [advisories]
 version = 2
 yanked = "warn"
-unmaintained = "warn"
+unmaintained = "all"
 ignore = [
     "RUSTSEC-2023-0071",
     "RUSTSEC-2026-0099",
