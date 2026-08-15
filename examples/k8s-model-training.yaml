@@ -1,0 +1,48 @@
+apiVersion: flowforge.io/v1
+kind: Workflow
+
+metadata:
+  name: k8s-model-training
+  description: Distributed machine learning training workflow with model evaluation and S3 checkpoint persistence.
+  version: 1
+  labels:
+    tier: standard
+    team: ml-platform
+
+spec:
+  schedule:
+    cron: "0 2 * * *"
+    timezone: "UTC"
+
+  concurrency:
+    maxRuns: 2
+
+  retries:
+    maxAttempts: 2
+    backoff: linear
+    initialIntervalSecs: 10
+    maxIntervalSecs: 60
+
+  tasks:
+    - id: fetch-dataset
+      type: shell
+      command: echo "Downloading training dataset from S3..." && exit 0
+      timeoutSecs: 300
+
+    - id: train-model
+      type: wait
+      waitSecs: 3
+      dependsOn:
+        - fetch-dataset
+
+    - id: evaluate-metrics
+      type: shell
+      command: echo "Model evaluation complete: Validation Loss = 0.0142, Accuracy = 98.4%" && exit 0
+      dependsOn:
+        - train-model
+
+    - id: upload-checkpoints
+      type: shell
+      command: echo "Uploading final model weights to artifact registry..." && exit 0
+      dependsOn:
+        - evaluate-metrics

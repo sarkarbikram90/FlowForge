@@ -1,39 +1,42 @@
-# Multi-stage Rust build
-FROM rust:1.82-slim-bookworm AS builder
+# ─── Multi-Stage Dockerfile for FlowForge Platform ───
 
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+# Stage 1: Build Rust Binaries
+FROM rust:1.80-alpine AS builder
 
+RUN apk add --no-cache musl-dev pkgconfig openssl-dev perl make
+
+WORKDIR /usr/src/flowforge
+
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+
+RUN cargo build --release --workspace
+
+# Stage 2: Runtime Image for API
+FROM alpine:3.20 AS api
+RUN apk add --no-cache ca-certificates libgcc
 WORKDIR /app
-COPY Cargo.toml Cargo.lock* ./
-COPY common/ common/
-COPY scheduler/ scheduler/
-COPY worker/ worker/
-COPY api/ api/
-COPY cli/ cli/
-
-RUN cargo build --release
-
-# ─── Scheduler Image ───
-FROM debian:bookworm-slim AS scheduler
-RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/flowforge-scheduler /usr/local/bin/
-ENTRYPOINT ["flowforge-scheduler"]
-
-# ─── Worker Image ───
-FROM debian:bookworm-slim AS worker
-RUN apt-get update && apt-get install -y ca-certificates libssl3 curl && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/flowforge-worker /usr/local/bin/
-ENTRYPOINT ["flowforge-worker"]
-
-# ─── API Image ───
-FROM debian:bookworm-slim AS api
-RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/flowforge-api /usr/local/bin/
+COPY --from=builder /usr/src/flowforge/target/release/flowforge-api /app/flowforge-api
 EXPOSE 8080
-ENTRYPOINT ["flowforge-api"]
+ENTRYPOINT ["/app/flowforge-api"]
 
-# ─── CLI Image ───
-FROM debian:bookworm-slim AS cli
-RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/flowforge-cli /usr/local/bin/
-ENTRYPOINT ["flowforge-cli"]
+# Stage 3: Runtime Image for Scheduler
+FROM alpine:3.20 AS scheduler
+RUN apk add --no-cache ca-certificates libgcc
+WORKDIR /app
+COPY --from=builder /usr/src/flowforge/target/release/flowforge-scheduler /app/flowforge-scheduler
+ENTRYPOINT ["/app/flowforge-scheduler"]
+
+# Stage 4: Runtime Image for Worker
+FROM alpine:3.20 AS worker
+RUN apk add --no-cache ca-certificates libgcc python3 bash curl docker-cli
+WORKDIR /app
+COPY --from=builder /usr/src/flowforge/target/release/flowforge-worker /app/flowforge-worker
+ENTRYPOINT ["/app/flowforge-worker"]
+
+# Stage 5: CLI
+FROM alpine:3.20 AS cli
+RUN apk add --no-cache ca-certificates libgcc
+WORKDIR /app
+COPY --from=builder /usr/src/flowforge/target/release/flowforge /app/flowforge
+ENTRYPOINT ["/app/flowforge"]

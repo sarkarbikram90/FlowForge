@@ -1,0 +1,94 @@
+# Default values for FlowForge Platform
+global:
+  environment: production
+  imageRegistry: ghcr.io/sarkarbikram90/flowforge
+
+api:
+  replicaCount: 3
+  image:
+    repository: flowforge-api
+    tag: 0.2.0
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  livenessProbe:
+    httpGet:
+      path: /api/v1/health/live
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /api/v1/health/ready
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+scheduler:
+  replicaCount: 3 # 3 replicas, exactly 1 active leader via PostgreSQL lease
+  image:
+    repository: flowforge-scheduler
+    tag: 0.2.0
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+worker:
+  replicaCount: 4
+  concurrency: 16
+  image:
+    repository: flowforge-worker
+    tag: 0.2.0
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 75
+
+postgresql:
+  enabled: true
+  auth:
+    database: flowforge
+    username: flowforge
+    password: flowforge-secret-password
+
+nats:
+  enabled: true
+  jetstream:
+    enabled: true
+    memStorage:
+      enabled: false
+      size: 4Gi
+    fileStorage:
+      enabled: true
+      size: 20Gi
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: flowforge.internal
+      paths:
+        - path: /
+          pathType: Prefix

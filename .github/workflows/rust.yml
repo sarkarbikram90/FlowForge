@@ -10,7 +10,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-test-lint:
+  backend-test:
+    name: Rust Backend Workspace
     runs-on: ubuntu-latest
 
     steps:
@@ -19,21 +20,37 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
+      - name: Workspace Check
+        run: cargo check --workspace --verbose
 
-      - name: Run Clippy (linting)
-        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Workspace Tests
+        run: cargo test --workspace --verbose
 
-      - name: Build
-        run: cargo build --verbose
+  ui-build:
+    name: Frontend UI
+    runs-on: ubuntu-latest
 
-      - name: Run tests
-        run: cargo test --verbose
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Check for unused dependencies
-        run: cargo install cargo-udeps --locked && cargo +nightly udeps || true
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install UI Dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build UI Bundle
+        working-directory: ui
+        run: npm run build

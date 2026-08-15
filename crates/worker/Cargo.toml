@@ -1,0 +1,22 @@
+[package]
+name = "flowforge-worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+flowforge-common = { path = "../common" }
+flowforge-execution-engine = { path = "../execution-engine" }
+flowforge-persistence = { path = "../persistence" }
+flowforge-messaging = { path = "../messaging" }
+flowforge-observability = { path = "../observability" }
+tokio = { workspace = true }
+tokio-util = { version = "0.7", features = ["time"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"
+whoami = "1.6"

@@ -1,0 +1,54 @@
+apiVersion: flowforge.io/v1
+kind: Workflow
+
+metadata:
+  name: daily-etl-pipeline
+  description: Multi-stage distributed ETL pipeline extracting user and order records, transforming in container, and loading into warehouse.
+  version: 1
+  labels:
+    tier: critical
+    team: data-platform
+
+spec:
+  schedule:
+    cron: "0 * * * *"
+    timezone: "UTC"
+
+  concurrency:
+    maxRuns: 5
+
+  retries:
+    maxAttempts: 3
+    backoff: exponential_with_jitter
+    initialIntervalSecs: 5
+    maxIntervalSecs: 120
+    jitterFactor: 0.2
+
+  sla:
+    completionTime: "30m"
+    severity: high
+
+  tasks:
+    - id: extract-users
+      type: shell
+      command: echo "Extracting user records from Postgres replica..." && exit 0
+      timeoutSecs: 120
+
+    - id: extract-orders
+      type: shell
+      command: echo "Extracting order records from Postgres replica..." && exit 0
+      timeoutSecs: 120
+
+    - id: transform-data
+      type: wait
+      waitSecs: 2
+      dependsOn:
+        - extract-users
+        - extract-orders
+
+    - id: load-warehouse
+      type: shell
+      command: echo "Bulk loading transformed batches into Snowflake warehouse..." && exit 0
+      dependsOn:
+        - transform-data
+      timeoutSecs: 300

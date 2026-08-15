@@ -1,12 +1,16 @@
-.PHONY: up down build test clean dev seed
+.PHONY: up down build test clean dev seed lint check
 
-# Build all Rust binaries
+# Build all workspace binaries
 build:
-	cargo build --release
+	cargo build --release --workspace
 
-# Run tests
+# Run all workspace unit tests and chaos test suites
 test:
 	cargo test --workspace
+
+# Check workspace compilation
+check:
+	cargo check --workspace
 
 # Start full stack with Docker Compose
 up:
@@ -23,35 +27,35 @@ clean:
 
 # Start infrastructure only (for local dev)
 dev-infra:
-	docker compose up -d postgres redis
+	docker compose up -d postgres nats minio
 
-# Run API locally (requires dev-infra)
+# Run API locally
 dev-api:
-	cargo run --bin flowforge-api
+	cargo run -p flowforge-api
 
-# Run scheduler locally (requires dev-infra)
+# Run scheduler locally
 dev-scheduler:
-	cargo run --bin flowforge-scheduler
+	cargo run -p flowforge-scheduler
 
-# Run worker locally (requires dev-infra)
+# Run worker locally
 dev-worker:
-	cargo run --bin flowforge-worker
+	cargo run -p flowforge-worker
+
+# Run Frontend UI
+dev-ui:
+	cd ui && npm run dev
 
 # Seed example DAGs via CLI
 seed:
-	cargo run --bin flowforge-cli -- submit --file examples/simple-hello.yaml
-	cargo run --bin flowforge-cli -- submit --file examples/etl-pipeline.yaml
-	cargo run --bin flowforge-cli -- submit --file examples/retry-demo.yaml
-	@echo "DAGs seeded successfully!"
+	cargo run -p flowforge-cli -- workflow apply --file examples/daily-etl-pipeline.yaml
+	cargo run -p flowforge-cli -- workflow apply --file examples/k8s-model-training.yaml
+	cargo run -p flowforge-cli -- workflow apply --file examples/security-compliance-audit.yaml
+	@echo "Workflows seeded successfully!"
 
-# Trigger a sample run
-run-hello:
-	cargo run --bin flowforge-cli -- trigger simple-hello
+# Trigger sample workflow run
+run-sample:
+	cargo run -p flowforge-cli -- run trigger daily-etl-pipeline
 
 # View system status
 status:
-	cargo run --bin flowforge-cli -- status
-
-# View logs
-logs:
-	docker compose logs -f
+	cargo run -p flowforge-cli -- status

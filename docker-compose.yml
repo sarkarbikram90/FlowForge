@@ -18,17 +18,28 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js", "-m", "8222"]
     ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - natsdata:/data
 
-  # ─── Application ───
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  # ─── Platform Services ───
   api:
     build:
       context: .
@@ -36,15 +47,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
-      REDIS_URL: redis://redis:6379
+      FLOWFORGE_DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
+      FLOWFORGE_NATS_URL: nats://nats:4222
       API_HOST: "0.0.0.0"
       API_PORT: "8080"
       RUST_LOG: info
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     restart: unless-stopped
 
@@ -53,49 +62,42 @@ services:
       context: .
       target: scheduler
     environment:
-      DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
-      REDIS_URL: redis://redis:6379
-      SCHEDULER_INTERVAL_SECS: "5"
+      FLOWFORGE_DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
+      FLOWFORGE_NATS_URL: nats://nats:4222
+      SCHEDULER_INTERVAL_SECS: "2"
       RUST_LOG: info
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
 
-  worker:
+  worker-1:
     build:
       context: .
       target: worker
     environment:
-      DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
-      REDIS_URL: redis://redis:6379
-      WORKER_CONCURRENCY: "4"
+      FLOWFORGE_DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
+      FLOWFORGE_NATS_URL: nats://nats:4222
+      WORKER_CONCURRENCY: "8"
+      WORKER_ID: worker-us-east-01
       RUST_LOG: info
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
-    deploy:
-      replicas: 2
 
   worker-2:
     build:
       context: .
       target: worker
     environment:
-      DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
-      REDIS_URL: redis://redis:6379
-      WORKER_CONCURRENCY: "4"
-      WORKER_ID: worker-2
+      FLOWFORGE_DATABASE_URL: postgres://flowforge:flowforge@postgres:5432/flowforge
+      FLOWFORGE_NATS_URL: nats://nats:4222
+      WORKER_CONCURRENCY: "8"
+      WORKER_ID: worker-us-east-02
       RUST_LOG: info
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     restart: unless-stopped
 
@@ -109,3 +111,5 @@ services:
 
 volumes:
   pgdata:
+  natsdata:
+  miniodata:

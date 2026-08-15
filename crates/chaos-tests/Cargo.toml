@@ -1,0 +1,22 @@
+[package]
+name = "flowforge-chaos-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+flowforge-common = { path = "../common" }
+flowforge-workflow-engine = { path = "../workflow-engine" }
+flowforge-persistence = { path = "../persistence" }
+flowforge-messaging = { path = "../messaging" }
+flowforge-execution-engine = { path = "../execution-engine" }
+flowforge-scheduler = { path = "../scheduler" }
+flowforge-worker = { path = "../worker" }
+flowforge-auth = { path = "../auth" }
+tokio = { workspace = true }
+tokio-util = { version = "0.7", features = ["time"] }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }

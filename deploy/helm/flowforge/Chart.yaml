@@ -1,0 +1,16 @@
+apiVersion: v2
+name: flowforge
+description: FlowForge - Production-Grade Cloud-Native Workload Orchestration Platform
+type: application
+version: 0.2.0
+appVersion: "0.2.0"
+keywords:
+  - workflow
+  - orchestration
+  - dag
+  - rust
+  - kubernetes
+  - workload-automation
+maintainers:
+  - name: FlowForge Team
+    email: maintainers@flowforge.internal

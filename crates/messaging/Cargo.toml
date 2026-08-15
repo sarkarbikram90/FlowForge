@@ -1,0 +1,19 @@
+[package]
+name = "flowforge-messaging"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+flowforge-common = { path = "../common" }
+flowforge-persistence = { path = "../persistence" }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+parking_lot = "0.12"
+async-trait = "0.1"
