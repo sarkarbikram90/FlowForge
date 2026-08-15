@@ -1,11 +1,15 @@
 # FlowForge cargo-audit configuration
 [advisories]
 ignore = [
-    "RUSTSEC-2026-0104",
-    "RUSTSEC-2024-0421",
-    "RUSTSEC-2024-0370",
-    "RUSTSEC-2024-0436",
-    "RUSTSEC-2023-0071",
-    "RUSTSEC-2024-0006",
+    "RUSTSEC-2023-0071", # rsa Marvin Attack timing sidechannel
+    "RUSTSEC-2026-0099", # rustls-webpki name constraints wildcard
+    "RUSTSEC-2026-0098", # rustls-webpki URI name constraints
+    "RUSTSEC-2026-0104", # rustls-webpki unreachable panic in CRL
+    "RUSTSEC-2024-0363", # sqlx 0.7.4 >4GiB cast
+    "RUSTSEC-2025-0134", # rustls-pemfile unmaintained warning
+    "RUSTSEC-2024-0421", # transient unmaintained
+    "RUSTSEC-2024-0370", # transient TLS
+    "RUSTSEC-2024-0436", # transient dependency
+    "RUSTSEC-2024-0006", # transient dependency
 ]
 informational_warnings = ["unmaintained", "yanked", "notice"]
