@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="assets/logo.svg" alt="FlowForge Logo" width="180" height="180" />
   <h1>⚡ FlowForge</h1>
   <p><strong>Cloud-Native, Rust-Powered Distributed Workload Orchestration Platform</strong></p>
   <p>Scheduled, event-driven, observable and fault-tolerant workflow automation across containers, Kubernetes, servers, scripts and APIs.</p>
