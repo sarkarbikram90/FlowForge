@@ -38,5 +38,5 @@ ENTRYPOINT ["/app/flowforge-worker"]
 FROM alpine:3.20 AS cli
 RUN apk add --no-cache ca-certificates libgcc
 WORKDIR /app
-COPY --from=builder /usr/src/flowforge/target/release/flowforge /app/flowforge
+COPY --from=builder /usr/src/flowforge/target/release/flowforge-cli /app/flowforge
 ENTRYPOINT ["/app/flowforge"]
